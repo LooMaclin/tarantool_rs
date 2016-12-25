@@ -155,7 +155,7 @@ impl<'a> Tarantool<'a> {
             &[Code::UserName as u8][..],
             &[0xa9][..],
             &username[..],
-            &[Code::Tuple as u8, 0x92][..],
+            &[Code::Tuple as u8, 0x92, 0xA9][..],
             &"chap-sha1".as_bytes(),
             &[0xB4][..],
             &scramble[..]
