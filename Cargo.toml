@@ -1,0 +1,23 @@
+[package]
+name = "tarantool"
+version = "1.7.0"
+authors = ["Galimov Arsen Gareginovich <loomaclin@yandex.ru>"]
+
+[dependencies]
+serde = "0.8.19"
+serde_derive = "0.8.19"
+rmp = "0.7.5"
+rmp-serde = "0.10.0"
+base64 = "0.2.1"
+sha1 = "0.2.0"
+log = "0.3.6"
+futures = "0.1"
+tokio-core = "0.1.1"
+tokio-service = { git = "https://github.com/tokio-rs/tokio-service" }
+tokio-proto = { git = "https://github.com/tokio-rs/tokio-proto" }
+rmp-serialize = "0.7.0"
+rustc-serialize = "0.3.22"
+byteorder = "0.5.3"
+
+[dev-dependencies]
+env_logger = "0.3"
