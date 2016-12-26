@@ -13,6 +13,7 @@ extern crate sha1;
 extern crate rmp_serialize as msgpack;
 extern crate rustc_serialize;
 extern crate byteorder;
+extern crate hex_slice;
 
 #[macro_use]
 extern crate log;

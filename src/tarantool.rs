@@ -13,6 +13,7 @@ use msgpack::{Encoder, Decoder};
 use rmp::decode::{read_map_size};
 use byteorder::{BigEndian, ByteOrder};
 use rmp::encode::{write_u32, write_u8};
+use hex_slice::AsHex;
 
 use greeting_packet::GreetingPacket;
 use code::Code;
@@ -86,27 +87,11 @@ impl<'a> Tarantool<'a> {
             error: Cow::Borrowed(""),
             data: vec![],
         };
-        println!("\n\nrequest(size: {}): ", &request.len());
-        for n in &request {
-            print!("{:#X} ", &n);
-        }
-        println!("\n\nlength(size: {}): ", &encoded_request_length.len());
-        for n in &encoded_request_length {
-            print!("{:#X} ", &n);
-        }
-        println!("\n\nheader(size: {}): ", &header.len());
-        for n in header {
-            print!("{:#X} ", &n);
-        }
-        println!("\n\nbody(size: {}): ", &body.len());
-        for n in body {
-            print!("{:#X} ", &n);
-        }
-        println!("\n\npayload: ");
-        for n in &payload {
-            print!("{:#X} ", &n);
-        }
-        println!("\n\npayload: {}", String::from_utf8_lossy(&payload))
+        println!("request(size: {}): {:#X}", &request.len(), &request.as_hex());
+        println!("length(size: {}): {:#X}", &encoded_request_length.len(), &encoded_request_length.as_hex());
+        println!("header(size: {}): {:#X}", &header.len(), &header.as_hex());
+        println!("body(size: {}): {:#X}", &body.len(), &body.as_hex());
+        println!("payload(size: {}): {:#X}", &payload.len(), &payload.as_hex());
     }
 
     pub fn read_length(&mut self) -> u32 {
@@ -142,6 +127,7 @@ impl<'a> Tarantool<'a> {
 
     pub fn auth(&mut self) {
         let scramble = self.scramble();
+        println!("scramble: {:#X}", &scramble.as_hex());
         let id = self.get_id();
         let header = self.header(RequestTypeKey::Auth, id);
         let mut chap_sha1_encoded = Vec::new();
@@ -157,7 +143,7 @@ impl<'a> Tarantool<'a> {
             &username[..],
             &[Code::Tuple as u8, 0x92, 0xA9][..],
             &"chap-sha1".as_bytes(),
-            &[0xB4][..],
+            &[0xC4, 0x14][..],
             &scramble[..]
         ].concat();
         self.request(&header, &body);

@@ -13,11 +13,10 @@ sha1 = "0.2.0"
 log = "0.3.6"
 futures = "0.1"
 tokio-core = "0.1.1"
-tokio-service = { git = "https://github.com/tokio-rs/tokio-service" }
-tokio-proto = { git = "https://github.com/tokio-rs/tokio-proto" }
 rmp-serialize = "0.7.0"
 rustc-serialize = "0.3.22"
 byteorder = "0.5.3"
+hex-slice = "0.1.0"
 
 [dev-dependencies]
 env_logger = "0.3"
