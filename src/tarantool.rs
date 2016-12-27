@@ -87,11 +87,13 @@ impl<'a> Tarantool<'a> {
             error: Cow::Borrowed(""),
             data: vec![],
         };
+        println!("Greeting: {:?}", &self.greeting_packet);
         println!("request(size: {}): {:#X}", &request.len(), &request.as_hex());
         println!("length(size: {}): {:#X}", &encoded_request_length.len(), &encoded_request_length.as_hex());
         println!("header(size: {}): {:#X}", &header.len(), &header.as_hex());
         println!("body(size: {}): {:#X}", &body.len(), &body.as_hex());
         println!("payload(size: {}): {:#X}", &payload.len(), &payload.as_hex());
+        println!("payload(as text): {}", String::from_utf8_lossy(&payload));
     }
 
     pub fn read_length(&mut self) -> u32 {
@@ -108,10 +110,11 @@ impl<'a> Tarantool<'a> {
         payload
     }
 
-    pub fn scramble(&mut self) -> Vec<u8> {
-        let decoded_salt = &decode(&self.greeting_packet.salt).unwrap()[..];
+    pub fn scramble<S>(salt: S, password: S) -> Vec<u8>
+        where S: Into<Cow<'a, str>> {
+        let decoded_salt = &decode(&salt.into()).unwrap()[..];
         let mut step_1 = Sha1::new();
-        step_1.update(&(self.password[..]).as_bytes());
+        step_1.update(&(password.into()[..]).as_bytes());
         let mut step_2 = Sha1::new();
         step_2.update(&step_1.digest().bytes());
         let mut step_3 = Sha1::new();
@@ -126,15 +129,14 @@ impl<'a> Tarantool<'a> {
     }
 
     pub fn auth(&mut self) {
-        let scramble = self.scramble();
-        println!("scramble: {:#X}", &scramble.as_hex());
+        let scramble = Tarantool::scramble(&*self.greeting_packet.salt, &*self.password);
+        println!("scramble (size: {}): {:#X}",&scramble.len(), &scramble.as_hex());
         let id = self.get_id();
         let header = self.header(RequestTypeKey::Auth, id);
         let mut chap_sha1_encoded = Vec::new();
         "chap-sha1".encode(&mut Encoder::new(&mut &mut chap_sha1_encoded[..]));
         let username = self.user.clone().into_owned().into_bytes();
-        println!("scramble size: {}", &scramble.len());
-        println!("scramble: {}", String::from_utf8_lossy(&scramble[..]));
+        println!("scramble (as text): {}", String::from_utf8_lossy(&scramble[..]));
         println!("chap-sha1 size bytes: {}", &"chap-sha1".as_bytes().len());
         let body = [
             &[0x82][..],
@@ -147,5 +149,19 @@ impl<'a> Tarantool<'a> {
             &scramble[..]
         ].concat();
         self.request(&header, &body);
+    }
+}
+
+#[cfg(test)]
+mod test {
+
+    use super::Tarantool;
+    use hex_slice::AsHex;
+
+    #[test]
+    fn scramble_result() {
+        let scramble = Tarantool::scramble("WPE4wY2+RTBuFvElfHawAheh37sa58XKR/ZEOvgRsa8=", "123");
+        assert_eq!([0xAC, 0x3F, 0xAD, 0x90, 0x6F, 0xFE, 0x80, 0x28, 0x92, 0x79, 0xCE, 0xC3, 0xFC,
+                   0xDA, 0x0B, 0x86, 0xBD, 0x06, 0x2A, 0x69], &scramble[..]);
     }
 }
