@@ -32,10 +32,16 @@ pub struct Tarantool<'a> {
 
 #[derive(Debug)]
 pub struct Response<'a> {
-    request_id: u32,
+    len: u32,
+    header: Header,
+    body: Optional<Vec<u8>>,
+}
+
+#[derive(Debug)]
+pub struct Header {
     code: u32,
-    error: Cow<'a, str>,
-    data: Vec<u8>,
+    sync: u64,
+    schema_id:  u32,
 }
 
 impl<'a> Tarantool<'a> {
@@ -81,12 +87,6 @@ impl<'a> Tarantool<'a> {
         self.socket.write(&request);
         let response_length = self.read_length();
         let payload = self.read_payload(response_length);
-        let response = Response {
-            request_id: 0,
-            code: 0,
-            error: Cow::Borrowed(""),
-            data: vec![],
-        };
         println!("Greeting: {:?}", &self.greeting_packet);
         println!("request(size: {}): {:#X}", &request.len(), &request.as_hex());
         println!("length(size: {}): {:#X}", &encoded_request_length.len(), &encoded_request_length.as_hex());
@@ -138,10 +138,12 @@ impl<'a> Tarantool<'a> {
         let username = self.user.clone().into_owned().into_bytes();
         println!("scramble (as text): {}", String::from_utf8_lossy(&scramble[..]));
         println!("chap-sha1 size bytes: {}", &"chap-sha1".as_bytes().len());
+        println!("user name: {:?}", &username);
         let body = [
             &[0x82][..],
             &[Code::UserName as u8][..],
-            &[0xa9][..],
+            //TODO: Set the username string size dynamically. A4 - harcoded value for `test`
+            &[0xA4][..],
             &username[..],
             &[Code::Tuple as u8, 0x92, 0xA9][..],
             &"chap-sha1".as_bytes(),
