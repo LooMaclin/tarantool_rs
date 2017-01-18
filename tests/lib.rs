@@ -7,4 +7,5 @@ use tarantool::client::Client;
 fn tarantool_with_builder() {
     let mut tarantool_instance = Tarantool::new("127.0.0.1:3301", "test", "test");
     tarantool_instance.auth();
+    tarantool_instance.select(0,0,0,0,0, 0);
 }

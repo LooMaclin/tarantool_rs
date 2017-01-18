@@ -1,24 +1,22 @@
 use std::borrow::Cow;
 use std::net::TcpStream;
 use std::io::Read;
-use std::ops::BitXor;
-use std::collections::BTreeMap;
 use std::io::Write;
 use std::io::Cursor;
+use std::collections::HashMap;
 
-use base64::{decode};
+use base64::{decode as decode_base64};
 use sha1::{Sha1};
 use rustc_serialize::{Encodable, Decodable};
-use msgpack::{Encoder, Decoder};
-use rmp::decode::{read_map_size};
-use byteorder::{BigEndian, ByteOrder};
-use rmp::encode::{write_u32, write_u8};
+use rmp_serialize::{Encoder, Decoder};
+use rmp::encode::{write_u32};
+use rmp::decode::read_map_size;
 use hex_slice::AsHex;
+use byteorder::{ByteOrder, BigEndian};
 
 use greeting_packet::GreetingPacket;
 use code::Code;
 use request_type_key::RequestTypeKey;
-use protocol_parts::ProtocolParts;
 
 #[derive(Debug)]
 pub struct Tarantool<'a> {
@@ -31,10 +29,9 @@ pub struct Tarantool<'a> {
 }
 
 #[derive(Debug)]
-pub struct Response<'a> {
-    len: u32,
+pub struct Response {
     header: Header,
-    body: Optional<Vec<u8>>,
+    body: Option<Vec<u8>>,
 }
 
 #[derive(Debug)]
@@ -79,7 +76,7 @@ impl<'a> Tarantool<'a> {
         encoded_header
     }
 
-    pub fn request(&mut self, header: &[u8], body: &[u8]) {
+    pub fn request(&mut self, header: &[u8], body: &[u8]) -> Response {
         let mut encoded_request_length = [0x00, 0x00, 0x00, 0x00, 0x00];
         write_u32(&mut &mut encoded_request_length[..],
                   (header.len() + body.len()) as u32).ok().unwrap();
@@ -94,6 +91,21 @@ impl<'a> Tarantool<'a> {
         println!("body(size: {}): {:#X}", &body.len(), &body.as_hex());
         println!("payload(size: {}): {:#X}", &payload.len(), &payload.as_hex());
         println!("payload(as text): {}", String::from_utf8_lossy(&payload));
+        let header = Header {
+          code: BigEndian::read_u32(&payload[3..8]),
+          sync: BigEndian::read_u64(&payload[9..17]),
+          schema_id: BigEndian::read_u32(&payload[19..23]),
+        };
+        println!("body: {:#X}", &payload[23..payload.len()].as_hex());
+        Response {
+            header: header,
+            body:
+            if payload.len() > 24 {
+                Some(payload[23..payload.len()].to_vec())
+            } else {
+                Option::None
+            },
+        }
     }
 
     pub fn read_length(&mut self) -> u32 {
@@ -112,7 +124,7 @@ impl<'a> Tarantool<'a> {
 
     pub fn scramble<S>(salt: S, password: S) -> Vec<u8>
         where S: Into<Cow<'a, str>> {
-        let decoded_salt = &decode(&salt.into()).unwrap()[..];
+        let decoded_salt = &decode_base64(&salt.into()).unwrap()[..];
         let mut step_1 = Sha1::new();
         step_1.update(&(password.into()[..]).as_bytes());
         let mut step_2 = Sha1::new();
@@ -151,6 +163,28 @@ impl<'a> Tarantool<'a> {
             &scramble[..]
         ].concat();
         self.request(&header, &body);
+    }
+
+    pub fn select(&mut self, space_id: String, index_id: String, limit: u32, offset: u32, iterator: u32, key: u32) {
+        let request_id = self.get_id();
+        let header = self.header(RequestTypeKey::Select, request_id);
+        let body = [
+            &[0x86][..],
+            &[Code::SpaceId as u8][..],
+            &[0xCE, 0x0, 0x0, 0x0, 0x9][..],
+            &[Code::IndexId as u8][..],
+            &[0xCE, 0x0, 0x0, 0x0, 0x0][..],
+            &[Code::Limit as u8][..],
+            &[0xCE, 0x0, 0x0, 0x0, 0x0][..],
+            &[Code::Offset as u8][..],
+            &[0xCE, 0x0, 0x0, 0x0, 0x0][..],
+            &[Code::Iterator as u8][..],
+            &[0xCE, 0x0, 0x0, 0x0, 0x2][..],
+            &[Code::Key as u8][..],
+            &[0x91, 0x3][..]
+        ].concat();
+        self.request(&header, &body);
+
     }
 }
 

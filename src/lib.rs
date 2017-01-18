@@ -1,16 +1,9 @@
-#![feature(proc_macro)]
-#[macro_use]
-extern crate serde;
-#[macro_use]
-extern crate serde_derive;
 #[macro_use]
 extern crate rmp;
-#[macro_use]
-extern crate rmp_serde;
 
 extern crate base64;
 extern crate sha1;
-extern crate rmp_serialize as msgpack;
+extern crate rmp_serialize;
 extern crate rustc_serialize;
 extern crate byteorder;
 extern crate hex_slice;

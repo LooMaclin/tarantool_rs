@@ -1,6 +1,6 @@
 use client::Client;
 use tarantool::Tarantool;
-
+/*
 impl<'a> Client<String> for Tarantool<'a> {
     fn connect(&self) -> String {
         unimplemented!()
@@ -41,4 +41,4 @@ impl<'a> Client<String> for Tarantool<'a> {
     fn call(&self) -> String {
         unimplemented!()
     }
-}
+}*/
