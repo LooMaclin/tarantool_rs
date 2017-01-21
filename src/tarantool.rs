@@ -52,6 +52,7 @@ pub enum HeterogeneousElement<'a> {
     I16(i16),
     I32(i32),
     I64(i64),
+    BOOLEAN(bool),
 }
 
 impl<'a> Tarantool<'a> {
@@ -180,7 +181,7 @@ impl<'a> Tarantool<'a> {
 
     pub fn select<S, I: Iterator<Item=HeterogeneousElement<'a>>>(&mut self, space_name: S, index_name: S, limit: u32, offset: u32, keys: I ) {
         for key in keys {
-            println!("key: {:?}", &key);
+            println!("key: {:?}", key);
         }
 
         let request_id = self.get_id();
