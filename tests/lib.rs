@@ -45,7 +45,7 @@ fn tarantool_with_builder() {
                            HeterogeneousElement::U32(2),
                            HeterogeneousElement::U64(3),
                            HeterogeneousElement::BOOLEAN(true)];
-    tarantool_instance.select("test", "primary", 10, 0, &test_array);
+    tarantool_instance.select("test", "primary", 10, 0, &test_array.iter());
     //tarantool_instance.select("test", "primary", 10, 0, &test_tuple);
-    tarantool_instance.select("test", "primary", 10, 0, &test_vector);
+    tarantool_instance.select("test", "primary", 10, 0, &test_vector.iter());
 }
