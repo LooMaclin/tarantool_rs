@@ -179,7 +179,7 @@ impl<'a> Tarantool<'a> {
         self.request(&header, &body);
     }
 
-    pub fn select<S, I: Iterator<Item=HeterogeneousElement<'a>>>(&mut self, space_name: S, index_name: S, limit: u32, offset: u32, keys: I ) {
+    pub fn select<'i, S, I: Iterator<Item=&'i HeterogeneousElement<'a>>>(&mut self, space_name: S, index_name: S, limit: u32, offset: u32, keys: I ) where 'a: 'i {
         for key in keys {
             println!("key: {:?}", key);
         }

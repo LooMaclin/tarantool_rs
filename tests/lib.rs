@@ -21,6 +21,7 @@ fn tarantool_with_builder() {
         HeterogeneousElement::U64(3),
         HeterogeneousElement::BOOLEAN(true)
     ];
+    /*
     let test_tuple = (HeterogeneousElement::I8(-1),
                       HeterogeneousElement::I16(-2),
                       HeterogeneousElement::I32(-3),
@@ -32,6 +33,7 @@ fn tarantool_with_builder() {
                       HeterogeneousElement::U32(2),
                       HeterogeneousElement::U64(3),
                       HeterogeneousElement::BOOLEAN(true));
+                      */
     let test_vector = vec![HeterogeneousElement::I8(-1),
                            HeterogeneousElement::I16(-2),
                            HeterogeneousElement::I32(-3),
@@ -44,6 +46,6 @@ fn tarantool_with_builder() {
                            HeterogeneousElement::U64(3),
                            HeterogeneousElement::BOOLEAN(true)];
     tarantool_instance.select("test", "primary", 10, 0, &test_array);
-    tarantool_instance.select("test", "primary", 10, 0, &test_tuple);
+    //tarantool_instance.select("test", "primary", 10, 0, &test_tuple);
     tarantool_instance.select("test", "primary", 10, 0, &test_vector);
 }
