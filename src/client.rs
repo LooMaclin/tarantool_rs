@@ -1,5 +1,4 @@
 pub trait Client<T> {
-    fn connect(&self) -> T;
     fn select(&self) -> T;
     fn insert(&self) -> T;
     fn replace(&self) -> T;

@@ -41,6 +41,19 @@ pub struct Header {
     schema_id:  u32,
 }
 
+#[derive(Debug)]
+pub enum HeterogeneousElement<'a> {
+    STRING(Cow<'a, str>),
+    U8(u8),
+    U16(u16),
+    U32(u32),
+    U64(u64),
+    I8(i8),
+    I16(i16),
+    I32(i32),
+    I64(i64),
+}
+
 impl<'a> Tarantool<'a> {
     pub fn new<S>(address: S, user: S, password: S) -> Tarantool<'a>
         where S: Into<Cow<'a, str>> {
@@ -165,7 +178,11 @@ impl<'a> Tarantool<'a> {
         self.request(&header, &body);
     }
 
-    pub fn select(&mut self, space_id: String, index_id: String, limit: u32, offset: u32, iterator: u32, key: u32) {
+    pub fn select<S, I: Iterator<Item=HeterogeneousElement<'a>>>(&mut self, space_name: S, index_name: S, limit: u32, offset: u32, keys: I ) {
+        for key in keys {
+            println!("key: {:?}", &key);
+        }
+
         let request_id = self.get_id();
         let header = self.header(RequestTypeKey::Select, request_id);
         let body = [
