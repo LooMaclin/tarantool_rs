@@ -4,8 +4,9 @@ version = "0.1.0"
 authors = ["Galimov Arsen Gareginovich <loomaclin@yandex.ru>"]
 
 [dependencies]
-rmp = "0.7.5"
-rmp-serde = "0.10.0"
+serde = "0.8"
+rmp = "0.8"
+rmp-serde = "0.11.0"
 base64 = "0.2.1"
 sha1 = "0.2.0"
 log = "0.3.6"

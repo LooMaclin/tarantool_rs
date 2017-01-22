@@ -10,13 +10,14 @@ use sha1::{Sha1};
 use rustc_serialize::{Encodable, Decodable};
 use rmp_serialize::{Encoder, Decoder};
 use rmp::encode::{write_u32};
-use rmp::decode::read_map_size;
 use hex_slice::AsHex;
 use byteorder::{ByteOrder, BigEndian};
-
+use serde::Serialize;
+use rmp_serde::Serializer;
 use greeting_packet::GreetingPacket;
 use code::Code;
 use request_type_key::RequestTypeKey;
+use iterator_type::IteratorType;
 
 #[derive(Debug)]
 pub struct Tarantool<'a> {
@@ -179,28 +180,35 @@ impl<'a> Tarantool<'a> {
         self.request(&header, &body);
     }
 
-    pub fn select<'i, 'b, S, I: Iterator<Item=&'i HeterogeneousElement<'b>>>(&mut self, space_name: S, index_name: S, limit: u32, offset: u32, keys: I ) where 'b: 'i {
-        for key in keys {
-            println!("key: {:?}", key);
+    pub fn select<I>(&mut self, space: u16, index: u8, limit: u8, offset: u8, iterator: IteratorType, keys: I )
+    where I: Serialize {
+        let mut keys_buffer = Vec::new();
+        keys.serialize(&mut Serializer::new(&mut keys_buffer));
+        if keys_buffer.len() == 1 {
+            keys_buffer = [
+                &[0x91][..],
+                &keys_buffer[..]
+            ].concat();
         }
-
         let request_id = self.get_id();
         let header = self.header(RequestTypeKey::Select, request_id);
-        let body = [
+        println!("KEYS BUFFER: {:#X}", &keys_buffer.as_hex());
+        let mut body = [
             &[0x86][..],
             &[Code::SpaceId as u8][..],
-            &[0xCE, 0x0, 0x0, 0x0, 0x9][..],
+            &[0xCD, 0x0, 0x0][..],
             &[Code::IndexId as u8][..],
-            &[0xCE, 0x0, 0x0, 0x0, 0x0][..],
+            &[index][..],
             &[Code::Limit as u8][..],
-            &[0xCE, 0x0, 0x0, 0x0, 0x0][..],
+            &[limit][..],
             &[Code::Offset as u8][..],
-            &[0xCE, 0x0, 0x0, 0x0, 0x0][..],
+            &[offset][..],
             &[Code::Iterator as u8][..],
-            &[0xCE, 0x0, 0x0, 0x0, 0x2][..],
+            &[iterator as u8][..],
             &[Code::Key as u8][..],
-            &[0x91, 0x3][..]
+            &keys_buffer[..]
         ].concat();
+        BigEndian::write_u16(&mut body[3..5], space);
         self.request(&header, &body);
 
     }
