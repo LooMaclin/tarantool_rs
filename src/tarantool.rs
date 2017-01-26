@@ -1,3 +1,5 @@
+
+
 use std::borrow::Cow;
 use std::net::TcpStream;
 use std::io::Read;
@@ -13,8 +15,8 @@ use rmp::encode::{write_u32, write_str};
 use rmp::decode::{read_array_len};
 use hex_slice::AsHex;
 use byteorder::{ByteOrder, BigEndian};
-use serde::Serialize;
-use rmp_serde::Serializer;
+use serde::{Serialize, Deserialize};
+use rmp_serde::{Serializer, Deserializer};
 use greeting_packet::GreetingPacket;
 use code::Code;
 use request_type_key::RequestTypeKey;
@@ -43,7 +45,7 @@ pub struct Header {
     schema_id:  u32,
 }
 
-#[derive(Debug)]
+#[derive(Debug, PartialEq, Deserialize)]
 pub enum HeterogeneousElement<'a> {
     STRING(Cow<'a, str>),
     U8(u8),
@@ -215,8 +217,8 @@ impl<'a> Tarantool<'a> {
         match response.body {
             Some(data) => {
                 let mut cur = Cursor::new(data);
-                println!("array response len: {}", read_array_len(&mut cur).unwrap());
-                vec![]
+                let mut deserializer = Deserializer::new(cur);
+                Deserialize::deserialize(&mut deserializer).unwrap()
             },
             None => {
                 vec![]
