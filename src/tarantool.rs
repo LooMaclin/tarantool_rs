@@ -9,7 +9,8 @@ use base64::{decode as decode_base64};
 use sha1::{Sha1};
 use rustc_serialize::{Encodable, Decodable};
 use rmp_serialize::{Encoder, Decoder};
-use rmp::encode::{write_u32};
+use rmp::encode::{write_u32, write_str};
+use rmp::decode::{read_array_len};
 use hex_slice::AsHex;
 use byteorder::{ByteOrder, BigEndian};
 use serde::Serialize;
@@ -162,25 +163,26 @@ impl<'a> Tarantool<'a> {
         let header = self.header(RequestTypeKey::Auth, id);
         let mut chap_sha1_encoded = Vec::new();
         "chap-sha1".encode(&mut Encoder::new(&mut &mut chap_sha1_encoded[..]));
-        let username = self.user.clone().into_owned().into_bytes();
-        println!("scramble (as text): {}", String::from_utf8_lossy(&scramble[..]));
-        println!("chap-sha1 size bytes: {}", &"chap-sha1".as_bytes().len());
-        println!("user name: {:?}", &username);
-        let body = [
+        let body = Tarantool::build_auth_body(self.user.clone(), &scramble);
+        self.request(&header, &body);
+    }
+
+    fn build_auth_body<S>(username: S, scramble: &[u8]) -> Vec<u8>
+        where S: Into<Cow<'a,str>> {
+        let mut encoded_username = Vec::new();
+        write_str(&mut encoded_username, &username.into());
+        [
             &[0x82][..],
             &[Code::UserName as u8][..],
-            //TODO: Set the username string size dynamically. A4 - harcoded value for `test`
-            &[0xA4][..],
-            &username[..],
+            &encoded_username[..],
             &[Code::Tuple as u8, 0x92, 0xA9][..],
             &"chap-sha1".as_bytes(),
             &[0xC4, 0x14][..],
             &scramble[..]
-        ].concat();
-        self.request(&header, &body);
+        ].concat()
     }
 
-    pub fn select<I>(&mut self, space: u16, index: u8, limit: u8, offset: u8, iterator: IteratorType, keys: I )
+    pub fn select<I>(&mut self, space: u16, index: u8, limit: u8, offset: u8, iterator: IteratorType, keys: I ) -> Vec<HeterogeneousElement>
     where I: Serialize {
         let mut keys_buffer = Vec::new();
         keys.serialize(&mut Serializer::new(&mut keys_buffer));
@@ -209,8 +211,17 @@ impl<'a> Tarantool<'a> {
             &keys_buffer[..]
         ].concat();
         BigEndian::write_u16(&mut body[3..5], space);
-        self.request(&header, &body);
-
+        let response = self.request(&header, &body);
+        match response.body {
+            Some(data) => {
+                let mut cur = Cursor::new(data);
+                println!("array response len: {}", read_array_len(&mut cur).unwrap());
+                vec![]
+            },
+            None => {
+                vec![]
+            }
+        }
     }
 }
 
@@ -225,5 +236,17 @@ mod test {
         let scramble = Tarantool::scramble("WPE4wY2+RTBuFvElfHawAheh37sa58XKR/ZEOvgRsa8=", "123");
         assert_eq!([0xAC, 0x3F, 0xAD, 0x90, 0x6F, 0xFE, 0x80, 0x28, 0x92, 0x79, 0xCE, 0xC3, 0xFC,
                    0xDA, 0x0B, 0x86, 0xBD, 0x06, 0x2A, 0x69], &scramble[..]);
+    }
+
+    #[test]
+    fn auth_body_result() {
+        let auth_body = Tarantool::build_auth_body(
+            "test",
+            &[0xAC, 0x3F, 0xAD, 0x90, 0x6F, 0xFE, 0x80, 0x28, 0x92, 0x79, 0xCE, 0xC3, 0xFC,
+            0xDA, 0x0B, 0x86, 0xBD, 0x06, 0x2A, 0x69][..]);
+        assert_eq!(&[0x82, 0x23, 0xA4, 0x74, 0x65, 0x73, 0x74, 0x21, 0x92, 0xA9, 0x63, 0x68, 0x61,
+            0x70, 0x2D, 0x73, 0x68, 0x61, 0x31, 0xC4, 0x14, 0xAC, 0x3F, 0xAD, 0x90, 0x6F, 0xFE,
+            0x80, 0x28, 0x92, 0x79, 0xCE, 0xC3, 0xFC, 0xDA, 0xB, 0x86, 0xBD, 0x6, 0x2A, 0x69][..],
+        &auth_body[..]);
     }
 }
