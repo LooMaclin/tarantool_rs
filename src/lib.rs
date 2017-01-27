@@ -1,4 +1,5 @@
 #![feature(custom_derive)]
+extern crate rmpv;
 extern crate rmp_serde;
 extern crate serde;
 

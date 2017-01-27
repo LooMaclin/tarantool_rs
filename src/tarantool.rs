@@ -21,6 +21,8 @@ use greeting_packet::GreetingPacket;
 use code::Code;
 use request_type_key::RequestTypeKey;
 use iterator_type::IteratorType;
+use rmpv::Value;
+use rmpv::decode::value::{read_value, Error};
 
 #[derive(Debug)]
 pub struct Tarantool<'a> {
@@ -114,12 +116,12 @@ impl<'a> Tarantool<'a> {
           sync: BigEndian::read_u64(&payload[9..17]),
           schema_id: BigEndian::read_u32(&payload[19..23]),
         };
-        println!("body: {:#X}", &payload[23..payload.len()].as_hex());
+        //println!("body: {:#X}", &payload[23..payload.len()].as_hex());
         Response {
             header: header,
             body:
             if payload.len() > 24 {
-                Some(payload[23..payload.len()].to_vec())
+                Some(payload[30..payload.len()].to_vec())
             } else {
                 Option::None
             },
@@ -184,7 +186,7 @@ impl<'a> Tarantool<'a> {
         ].concat()
     }
 
-    pub fn select<I>(&mut self, space: u16, index: u8, limit: u8, offset: u8, iterator: IteratorType, keys: I ) -> Vec<HeterogeneousElement>
+    pub fn select<'i, I>(&mut self, space: u16, index: u8, limit: u8, offset: u8, iterator: IteratorType, keys: I ) -> Result<&Vec<Value>, &'a str>
     where I: Serialize {
         let mut keys_buffer = Vec::new();
         keys.serialize(&mut Serializer::new(&mut keys_buffer));
@@ -216,12 +218,10 @@ impl<'a> Tarantool<'a> {
         let response = self.request(&header, &body);
         match response.body {
             Some(data) => {
-                let mut cur = Cursor::new(data);
-                let mut deserializer = Deserializer::new(cur);
-                Deserialize::deserialize(&mut deserializer).unwrap()
+                Ok(read_value(&mut &data[..]).unwrap().as_array().unwrap())
             },
             None => {
-                vec![]
+                Err("Some error...:(")
             }
         }
     }
