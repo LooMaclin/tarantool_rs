@@ -1,5 +1,3 @@
-
-
 use std::borrow::Cow;
 use std::net::TcpStream;
 use std::io::Read;
@@ -23,6 +21,9 @@ use request_type_key::RequestTypeKey;
 use iterator_type::IteratorType;
 use rmpv::Value;
 use rmpv::decode::value::{read_value, Error};
+use std::clone::Clone;
+use rmpv::ValueRef;
+use rmpv::decode::value_ref::read_value_ref;
 
 #[derive(Debug)]
 pub struct Tarantool<'a> {
@@ -34,13 +35,13 @@ pub struct Tarantool<'a> {
     socket: TcpStream,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Response {
     header: Header,
     body: Option<Vec<u8>>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Header {
     code: u32,
     sync: u64,
@@ -186,7 +187,7 @@ impl<'a> Tarantool<'a> {
         ].concat()
     }
 
-    pub fn select<'i, I>(&mut self, space: u16, index: u8, limit: u8, offset: u8, iterator: IteratorType, keys: I ) -> Result<&Vec<Value>, &'a str>
+    pub fn select<I>(&mut self, space: u16, index: u8, limit: u8, offset: u8, iterator: IteratorType, keys: I ) -> Result<Vec<Value>, &'a str>
     where I: Serialize {
         let mut keys_buffer = Vec::new();
         keys.serialize(&mut Serializer::new(&mut keys_buffer));
@@ -216,13 +217,10 @@ impl<'a> Tarantool<'a> {
         ].concat();
         BigEndian::write_u16(&mut body[3..5], space);
         let response = self.request(&header, &body);
-        match response.body {
-            Some(data) => {
-                Ok(read_value(&mut &data[..]).unwrap().as_array().unwrap())
-            },
-            None => {
-                Err("Some error...:(")
-            }
+        let data = response.body.ok_or("Some error...:(")?;
+        match read_value(&mut &data[..]).unwrap() {
+            Value::Array(data) => Ok(data),
+            _ => Err("Another sad error...:("),
         }
     }
 }
