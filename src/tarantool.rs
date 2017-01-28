@@ -4,6 +4,7 @@ use std::io::Read;
 use std::io::Write;
 use std::io::Cursor;
 use std::collections::HashMap;
+use std::str::from_utf8;
 
 use base64::{decode as decode_base64};
 use sha1::{Sha1};
@@ -24,6 +25,7 @@ use rmpv::decode::value::{read_value, Error};
 use std::clone::Clone;
 use rmpv::ValueRef;
 use rmpv::decode::value_ref::read_value_ref;
+
 
 #[derive(Debug)]
 pub struct Tarantool<'a> {
@@ -48,27 +50,13 @@ pub struct Header {
     schema_id:  u32,
 }
 
-#[derive(Debug, PartialEq, Deserialize)]
-pub enum HeterogeneousElement<'a> {
-    STRING(Cow<'a, str>),
-    U8(u8),
-    U16(u16),
-    U32(u32),
-    U64(u64),
-    I8(i8),
-    I16(i16),
-    I32(i32),
-    I64(i64),
-    BOOLEAN(bool),
-}
-
 impl<'a> Tarantool<'a> {
-    pub fn new<S>(address: S, user: S, password: S) -> Tarantool<'a>
+    pub fn auth<S>(address: S, user: S, password: S) -> Result<Tarantool<'a>, String>
         where S: Into<Cow<'a, str>> {
         let mut stream = TcpStream::connect("127.0.0.1:3301").unwrap();
         let mut buf = [0; 128];
         stream.read(&mut buf);
-        Tarantool {
+        let mut tarantool = Tarantool {
             address: address.into(),
             user: user.into(),
             password: password.into(),
@@ -78,6 +66,21 @@ impl<'a> Tarantool<'a> {
             ),
             request_id: 0,
             socket: stream,
+        };
+        let scramble = Tarantool::scramble(&*tarantool.greeting_packet.salt, &*tarantool.password);
+        println!("scramble (size: {}): {:#X}",&scramble.len(), &scramble.as_hex());
+        let id = tarantool.get_id();
+        let header = tarantool.header(RequestTypeKey::Auth, id);
+        let mut chap_sha1_encoded = Vec::new();
+        "chap-sha1".encode(&mut Encoder::new(&mut &mut chap_sha1_encoded[..]));
+        let body = Tarantool::build_auth_body(tarantool.user.clone(), &scramble);
+        match tarantool.request(&header, &body).body {
+            Some(data) => {
+                Err(String::from_utf8(data).unwrap())
+            },
+            None => {
+                Ok(tarantool)
+            }
         }
     }
 
@@ -117,12 +120,12 @@ impl<'a> Tarantool<'a> {
           sync: BigEndian::read_u64(&payload[9..17]),
           schema_id: BigEndian::read_u32(&payload[19..23]),
         };
-        //println!("body: {:#X}", &payload[23..payload.len()].as_hex());
+        println!("body: {:#X}", &payload[..23].as_hex());
         Response {
             header: header,
             body:
             if payload.len() > 24 {
-                Some(payload[30..payload.len()].to_vec())
+                Some(payload[23..payload.len()].to_vec())
             } else {
                 Option::None
             },
@@ -161,17 +164,6 @@ impl<'a> Tarantool<'a> {
             .collect::<Vec<u8>>()
     }
 
-    pub fn auth(&mut self) {
-        let scramble = Tarantool::scramble(&*self.greeting_packet.salt, &*self.password);
-        println!("scramble (size: {}): {:#X}",&scramble.len(), &scramble.as_hex());
-        let id = self.get_id();
-        let header = self.header(RequestTypeKey::Auth, id);
-        let mut chap_sha1_encoded = Vec::new();
-        "chap-sha1".encode(&mut Encoder::new(&mut &mut chap_sha1_encoded[..]));
-        let body = Tarantool::build_auth_body(self.user.clone(), &scramble);
-        self.request(&header, &body);
-    }
-
     fn build_auth_body<S>(username: S, scramble: &[u8]) -> Vec<u8>
         where S: Into<Cow<'a,str>> {
         let mut encoded_username = Vec::new();
@@ -187,7 +179,7 @@ impl<'a> Tarantool<'a> {
         ].concat()
     }
 
-    pub fn select<I>(&mut self, space: u16, index: u8, limit: u8, offset: u8, iterator: IteratorType, keys: I ) -> Result<Vec<Value>, &'a str>
+    pub fn select<I>(&mut self, space: u16, index: u8, limit: u8, offset: u8, iterator: IteratorType, keys: I ) -> Result<Vec<Value>, String>
     where I: Serialize {
         let mut keys_buffer = Vec::new();
         keys.serialize(&mut Serializer::new(&mut keys_buffer));
@@ -217,10 +209,20 @@ impl<'a> Tarantool<'a> {
         ].concat();
         BigEndian::write_u16(&mut body[3..5], space);
         let response = self.request(&header, &body);
-        let data = response.body.ok_or("Some error...:(")?;
-        match read_value(&mut &data[..]).unwrap() {
-            Value::Array(data) => Ok(data),
-            _ => Err("Another sad error...:("),
+        let data = response.body.ok_or("Empty body in response from Tarantool.")?;
+        let code = read_value(&mut &data[..]).unwrap().as_map().unwrap().get(0).unwrap().0.as_u64().unwrap();
+        if code == 48 {
+            match read_value(&mut &data[7..]).unwrap() {
+                Value::Array(data) => Ok(data),
+                _ => Err("Response code - ok, but data in body is not array of MsgPack objects.".to_string()),
+            }
+        } else {
+            let error_text = read_value(&mut &data[..]).unwrap();
+            let error_text = error_text.as_map().unwrap();
+            let error_text = error_text.get(0).unwrap();
+            let error_text = error_text.1.as_str();
+            let error_text = error_text.unwrap();
+            Err(error_text.to_string())
         }
     }
 }
