@@ -191,7 +191,6 @@ impl<'a> Tarantool<'a> {
         }
         let request_id = self.get_id();
         let header = self.header(RequestTypeKey::Select, request_id);
-        println!("KEYS BUFFER: {:#X}", &keys_buffer.as_hex());
         let mut body = [
             &[0x86][..],
             &[Code::SpaceId as u8][..],
