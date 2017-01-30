@@ -209,20 +209,13 @@ impl<'a> Tarantool<'a> {
         ].concat();
         BigEndian::write_u16(&mut body[3..5], space);
         let response = self.request(&header, &body);
-        let data = response.body.ok_or("Empty body in response from Tarantool.")?;
-        let code = read_value(&mut &data[..]).unwrap().as_map().unwrap().get(0).unwrap().0.as_u64().unwrap();
+        let data = response.body.ok_or("Some error...:(")?;
+        let code = read_value(&mut &data[1..2]).unwrap().as_u64().unwrap();
+        let data = read_value(&mut &data[2..]).unwrap();
         if code == 48 {
-            match read_value(&mut &data[7..]).unwrap() {
-                Value::Array(data) => Ok(data),
-                _ => Err("Response code - ok, but data in body is not array of MsgPack objects.".to_string()),
-            }
+            Ok(if let Value::Array(result) = data { result } else { vec![] })
         } else {
-            let error_text = read_value(&mut &data[..]).unwrap();
-            let error_text = error_text.as_map().unwrap();
-            let error_text = error_text.get(0).unwrap();
-            let error_text = error_text.1.as_str();
-            let error_text = error_text.unwrap();
-            Err(error_text.to_string())
+            Err(if let Value::String(result) = data { result } else { "Unrecognized error".to_string() })
         }
     }
 }

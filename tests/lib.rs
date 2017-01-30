@@ -14,7 +14,7 @@ pub struct Group<'a> {
     year: u64,
 }
 
-fn print_group(result: Vec<Value>) {
+fn print_group(result: &Vec<Value>) {
     let group = Group {
         id: result.get(0).unwrap_or(&Value::U64(0)).as_u64().unwrap(),
         name: result.get(1).unwrap().as_str().unwrap(),
@@ -28,17 +28,11 @@ fn tarantool_with_builder() {
     let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
         panic!("Tarantool auth error: {:?}", &err);
     });
-    let result = tarantool_instance.select(512, 0, 10, 0, IteratorType::Eq, (1)).unwrap_or_else(|err| {
+    let tuples = tarantool_instance.select(512, 0, 10, 0, IteratorType::Eq, (3)).unwrap_or_else(|err| {
         panic!("Tarantool select error: {:?}", &err);
     });
-    print_group(result);
-    let result = tarantool_instance.select(512, 0, 10, 0, IteratorType::Eq, (2)).unwrap_or_else(|err| {
-        panic!("Tarantool select error: {:?}", &err);
-    });
-    print_group(result);
-    let result = tarantool_instance.select(512, 0, 10, 0, IteratorType::Eq, (3)).unwrap_or_else(|err| {
-        panic!("Tarantool select error: {:?}", &err);
-    });
-    print_group(result);
-
+    for (index, tuple) in tuples.iter().enumerate() {
+        let tuple = tuple.as_array().unwrap();
+        print_group(tuple);
+    }
 }
