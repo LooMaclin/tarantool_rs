@@ -210,13 +210,6 @@ impl<'a> Tarantool<'a> {
         BigEndian::write_u16(&mut body[3..5], space);
         let response = self.request(&header, &body);
         let data = response.body.ok_or("Some error...:(")?;
-        /*let code = read_value(&mut &data[1..2]).unwrap().as_u64().unwrap();
-        let data = read_value(&mut &data[2..]).unwrap();
-        if code == 48 {
-            Ok(if let Value::Array(result) = data { result } else { vec![] })
-        } else {
-            Err(if let Value::String(result) = data { result } else { "Unrecognized error".to_string() })
-        }*/
         match read_value(&mut &data[..]).unwrap() {
             Value::Map(data) => {
                 let &(ref code, ref content) = data.get(0).unwrap();
