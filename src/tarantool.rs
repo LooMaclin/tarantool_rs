@@ -68,7 +68,6 @@ impl<'a> Tarantool<'a> {
             socket: stream,
         };
         let scramble = Tarantool::scramble(&*tarantool.greeting_packet.salt, &*tarantool.password);
-        println!("scramble (size: {}): {:#X}",&scramble.len(), &scramble.as_hex());
         let id = tarantool.get_id();
         let header = tarantool.header(RequestTypeKey::Auth, id);
         let mut chap_sha1_encoded = Vec::new();
@@ -108,19 +107,19 @@ impl<'a> Tarantool<'a> {
         self.socket.write(&request);
         let response_length = self.read_length();
         let payload = self.read_payload(response_length);
-        println!("Greeting: {:?}", &self.greeting_packet);
-        println!("request(size: {}): {:#X}", &request.len(), &request.as_hex());
-        println!("length(size: {}): {:#X}", &encoded_request_length.len(), &encoded_request_length.as_hex());
-        println!("header(size: {}): {:#X}", &header.len(), &header.as_hex());
-        println!("body(size: {}): {:#X}", &body.len(), &body.as_hex());
-        println!("payload(size: {}): {:#X}", &payload.len(), &payload.as_hex());
-        println!("payload(as text): {}", String::from_utf8_lossy(&payload));
+//        println!("Greeting: {:?}", &self.greeting_packet);
+//        println!("request(size: {}): {:#X}", &request.len(), &request.as_hex());
+//        println!("length(size: {}): {:#X}", &encoded_request_length.len(), &encoded_request_length.as_hex());
+//        println!("header(size: {}): {:#X}", &header.len(), &header.as_hex());
+//        println!("body(size: {}): {:#X}", &body.len(), &body.as_hex());
+//        println!("payload(size: {}): {:#X}", &payload.len(), &payload.as_hex());
+//        println!("payload(as text): {}", String::from_utf8_lossy(&payload));
         let header = Header {
           code: BigEndian::read_u32(&payload[3..8]),
           sync: BigEndian::read_u64(&payload[9..17]),
           schema_id: BigEndian::read_u32(&payload[19..23]),
         };
-        println!("body: {:#X}", &payload[..23].as_hex());
+        //println!("body: {:#X}", &payload[..23].as_hex());
         Response {
             header: header,
             body:
