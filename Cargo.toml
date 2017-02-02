@@ -18,6 +18,7 @@ rustc-serialize = "0.3.22"
 byteorder = "0.5.3"
 hex-slice = "0.1.0"
 rmpv = "0.1.0"
+tokio-service = "0.1.0"
 
 [dev-dependencies]
 env_logger = "0.3"
