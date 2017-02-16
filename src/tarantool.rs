@@ -106,7 +106,7 @@ impl<'a> Tarantool<'a> {
         let request = [&encoded_request_length[..],&header[..],&body[..]].concat();
         self.socket.write(&request);
         let response_length = self.read_length();
-        let payload = self.read_payload(response_length);
+        let payload = &self.read_payload(response_length)[..response_length as usize];
 //        println!("Greeting: {:?}", &self.greeting_packet);
 //        println!("request(size: {}): {:#X}", &request.len(), &request.as_hex());
 //        println!("length(size: {}): {:#X}", &encoded_request_length.len(), &encoded_request_length.as_hex());
@@ -139,8 +139,8 @@ impl<'a> Tarantool<'a> {
         length
     }
 
-    pub fn read_payload(&mut self, length: u32) -> Vec<u8> {
-        let mut payload = vec![0u8; length as usize];
+    pub fn read_payload(&mut self, length: u32) -> [u8; 8192] {
+        let mut payload = [0u8; 8192];
         self.socket.read(&mut payload);
         payload
     }
