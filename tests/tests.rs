@@ -18,6 +18,7 @@ use tarantool::async_client::TarantoolAsyncClient;
 use futures::Future;
 use tokio_core::reactor::Core;
 use tokio_service::Service;
+use test::Bencher;
 
 #[test]
 fn tarantool_sync() {
