@@ -60,8 +60,6 @@ fn tarantool_select_benchmark(b: &mut Bencher) {
         panic!("Tarantool auth error: {:?}", &err);
     });
     b.iter(|| {
-        let tuples = tarantool_instance.select(512, 0, 10, 0, IteratorType::All, (3)).unwrap_or_else(|err| {
-            panic!("Tarantool select error: {:?}", &err);
-        });
+         tarantool_instance.select(512, 0, 10, 0, IteratorType::All, (3)).unwrap();
     });
 }
