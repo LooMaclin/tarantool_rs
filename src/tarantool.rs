@@ -260,6 +260,6 @@ mod test {
     #[test]
     fn read_length() {
         let excepted_length = 1;
-        assert_eq!(5, Tarantool::read_length(&mut [0x00, 0x00, 0x00, 0x00, 0x00][..]));
+        assert_eq!(5, Tarantool::read_length(&mut &[0xCE, 0x00, 0x00, 0x00, 0x5][..]));
     }
 }
