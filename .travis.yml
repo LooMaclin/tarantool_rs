@@ -13,15 +13,12 @@ rust:
   - stable
   - nightly
 
-env:
-  - CRATE=tarantool_rs
-
 before_script:
   - pip install 'travis-cargo<0.2' --user && export PATH=$HOME/.local/bin:$PATH
 
 script:
-  - (cd $CRATE && cargo test);
+  - (cargo test);
 
 after_success:
-  - (cd $CRATE && travis-cargo coveralls --no-sudo)
+  - (travis-cargo coveralls --no-sudo)
 
