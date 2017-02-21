@@ -131,7 +131,7 @@ impl<'a> Tarantool<'a> {
         }
     }
 
-    pub fn read_length<I>(stream: &mut I) -> u32 where I: Read {
+    fn read_length<I>(stream: &mut I) -> u32 where I: Read {
         let mut packet_length = [0x00, 0x00, 0x00, 0x00, 0x00];
         stream.read(&mut packet_length);
         let mut decoder = Decoder::new(&packet_length[..]);
@@ -145,7 +145,7 @@ impl<'a> Tarantool<'a> {
         payload
     }
 
-    pub fn scramble<S>(salt: S, password: S) -> Vec<u8>
+    fn scramble<S>(salt: S, password: S) -> Vec<u8>
         where S: Into<Cow<'a, str>> {
         let decoded_salt = &decode_base64(&salt.into()).unwrap()[..];
         let mut step_1 = Sha1::new();
