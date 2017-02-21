@@ -105,7 +105,7 @@ impl<'a> Tarantool<'a> {
                   (header.len() + body.len()) as u32).ok().unwrap();
         let request = [&encoded_request_length[..],&header[..],&body[..]].concat();
         self.socket.write(&request);
-        let response_length = self.read_length();
+        let response_length = Tarantool::read_length(&mut self.socket);
         let payload = &self.read_payload(response_length)[..response_length as usize];
 //        println!("Greeting: {:?}", &self.greeting_packet);
 //        println!("request(size: {}): {:#X}", &request.len(), &request.as_hex());
@@ -131,9 +131,9 @@ impl<'a> Tarantool<'a> {
         }
     }
 
-    pub fn read_length(&mut self) -> u32 {
+    pub fn read_length<I>(stream: &mut I) -> u32 where I: Read {
         let mut packet_length = [0x00, 0x00, 0x00, 0x00, 0x00];
-        self.socket.read(&mut packet_length);
+        stream.read(&mut packet_length);
         let mut decoder = Decoder::new(&packet_length[..]);
         let mut length = Decodable::decode(&mut decoder).unwrap();
         length
@@ -255,5 +255,11 @@ mod test {
             0x70, 0x2D, 0x73, 0x68, 0x61, 0x31, 0xC4, 0x14, 0xAC, 0x3F, 0xAD, 0x90, 0x6F, 0xFE,
             0x80, 0x28, 0x92, 0x79, 0xCE, 0xC3, 0xFC, 0xDA, 0xB, 0x86, 0xBD, 0x6, 0x2A, 0x69][..],
         &auth_body[..]);
+    }
+
+    #[test]
+    fn read_length() {
+        let excepted_length = 1;
+        assert_eq!(5, Tarantool::read_length(&mut [0x00, 0x00, 0x00, 0x00, 0x00][..]));
     }
 }
