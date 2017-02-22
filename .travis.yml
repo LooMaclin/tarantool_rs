@@ -19,5 +19,5 @@ script:
   - (cargo test --lib);
 
 after_success:
-  - (travis-cargo coveralls --no-sudo)
+  - (travis-cargo coveralls --no-sudo --verify)
 
