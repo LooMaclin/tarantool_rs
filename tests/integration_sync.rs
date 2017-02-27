@@ -21,7 +21,7 @@ use tokio_service::Service;
 use test::Bencher;
 
 #[test]
-fn tarantool_sync() {
+fn tarantool_sync_select() {
     let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
         panic!("Tarantool auth error: {:?}", &err);
     });
