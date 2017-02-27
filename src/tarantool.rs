@@ -230,6 +230,50 @@ impl<'a> Tarantool<'a> {
             _ => Err("Read data error.".to_string()),
         }
     }
+
+    pub fn insert<I>(&mut self, space: u16, keys: I) -> Result<Vec<Value>, String>
+        where I: Serialize {
+        let mut keys_buffer = Vec::new();
+        keys.serialize(&mut Serializer::new(&mut keys_buffer));
+        if keys_buffer.len() == 1 {
+            keys_buffer = [
+                &[0x91][..],
+                &keys_buffer[..]
+            ].concat();
+        }
+        let request_id = self.get_id();
+        let header = self.header(RequestTypeKey::Insert, request_id);
+        let mut body = [
+            &[0x86][..],
+            &[Code::SpaceId as u8][..],
+            &[Code::Key as u8][..],
+            &keys_buffer[..]
+        ].concat();
+        BigEndian::write_u16(&mut body[3..5], space);
+        let response = self.request(&header, &body);
+        let data = response.body.ok_or("Body is empty.")?;
+        match read_value(&mut &data[..]).unwrap() {
+            Value::Map(mut data) => {
+                let (code, content) = data.remove(0);
+                let code = match code {
+                    Value::U64(code) => code,
+                    _ => panic!("Operation result code is't number.")
+                };
+                if code == 48 {
+                    match content {
+                        Value::Array(result) => Ok(result),
+                        _ => Err("Response body content is't array.".to_string())
+                    }
+                } else {
+                    match content {
+                        Value::String(result) => Err(result),
+                        _ => Err("Error content is't string.".to_string())
+                    }
+                }
+            },
+            _ => Err("Read data error.".to_string()),
+        }
+    }
 }
 
 #[cfg(test)]
