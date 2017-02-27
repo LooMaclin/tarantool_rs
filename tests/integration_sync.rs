@@ -6,13 +6,15 @@ extern crate rmpv;
 extern crate futures;
 extern crate tokio_core;
 extern crate tokio_service;
+extern crate serde;
+
 
 use tarantool::tarantool::Tarantool;
 use tarantool::client::Client;
 use tarantool::iterator_type::IteratorType;
 use std::borrow::Cow;
 use rmpv::Value;
-
+use serde::Serialize;
 use tarantool::async_client::TarantoolAsyncClient;
 
 use futures::Future;
@@ -32,6 +34,18 @@ fn tarantool_sync_select() {
         let tuple = tuple.as_array().unwrap();
         println!("{}: {:?}", index, tuple);
     }
+}
+
+#[test]
+fn tarantool_insert_select() {
+    let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
+        panic!("Tarantool auth error: {:?}", &err);
+    });
+    let inserting_value = vec![Value::U64(4), Value::String(String::from("White Room")), Value::U64(2017)];
+    let result = tarantool_instance.insert(512, inserting_value).unwrap_or_else(|err| {
+        panic!("Tarantool insert error: {:?}", &err);
+    });
+    println!("Result: {:?}", result);
 }
 
 

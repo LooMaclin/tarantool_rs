@@ -26,7 +26,6 @@ use std::clone::Clone;
 use rmpv::ValueRef;
 use rmpv::decode::value_ref::read_value_ref;
 
-
 #[derive(Debug)]
 pub struct Tarantool<'a> {
     address: Cow<'a, str>,
@@ -231,10 +230,10 @@ impl<'a> Tarantool<'a> {
         }
     }
 
-    pub fn insert<I>(&mut self, space: u16, keys: I) -> Result<Vec<Value>, String>
-        where I: Serialize {
+    pub fn insert(&mut self, space: u16, keys: Vec<Value>) -> Result<Value, String> {
         let mut keys_buffer = Vec::new();
-        keys.serialize(&mut Serializer::new(&mut keys_buffer));
+        let keys = Value::Array(keys);
+        keys.serialize(&mut Serializer::new(&mut keys_buffer)).unwrap();
         if keys_buffer.len() == 1 {
             keys_buffer = [
                 &[0x91][..],
@@ -260,10 +259,7 @@ impl<'a> Tarantool<'a> {
                     _ => panic!("Operation result code is't number.")
                 };
                 if code == 48 {
-                    match content {
-                        Value::Array(result) => Ok(result),
-                        _ => Err("Response body content is't array.".to_string())
-                    }
+                    Ok(content)
                 } else {
                     match content {
                         Value::String(result) => Err(result),

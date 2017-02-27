@@ -4,9 +4,11 @@ version = "0.1.0"
 authors = ["Galimov Arsen Gareginovich <loomaclin@yandex.ru>"]
 
 [dependencies]
-serde = "0.8"
-rmp = "0.8"
-rmp-serde = "0.11.0"
+serde = "0.9.9"
+rmp = { git = "https://github.com/3Hren/msgpack-rust.git", branch = "master" }
+rmp-serde = { git = "https://github.com/3Hren/msgpack-rust.git", branch = "master" }
+rmpv = { git = "https://github.com/3Hren/msgpack-rust.git", branch = "master"}
+
 base64 = "0.2.1"
 sha1 = "0.2.0"
 log = "0.3.6"
@@ -17,7 +19,6 @@ rmp-serialize = "0.8.0"
 rustc-serialize = "0.3.22"
 byteorder = "0.5.3"
 hex-slice = "0.1.0"
-rmpv = "0.1.0"
 tokio-service = "0.1.0"
 
 [dev-dependencies]
