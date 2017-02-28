@@ -5,9 +5,9 @@ authors = ["Galimov Arsen Gareginovich <loomaclin@yandex.ru>"]
 
 [dependencies]
 serde = "0.9.9"
-rmp = { git = "https://github.com/3Hren/msgpack-rust.git", branch = "master" }
-rmp-serde = { git = "https://github.com/3Hren/msgpack-rust.git", branch = "master" }
-rmpv = { git = "https://github.com/3Hren/msgpack-rust.git", branch = "master"}
+rmp = "0.8.2"
+rmp-serde = "0.12.2"
+rmpv = { version = "0.2.0", features = ["with-serde"] }
 
 base64 = "0.2.1"
 sha1 = "0.2.0"
