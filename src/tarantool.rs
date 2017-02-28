@@ -106,19 +106,18 @@ impl<'a> Tarantool<'a> {
         self.socket.write(&request);
         let response_length = Tarantool::read_length(&mut self.socket);
         let payload = &self.read_payload(response_length)[..response_length as usize];
-//        println!("Greeting: {:?}", &self.greeting_packet);
-//        println!("request(size: {}): {:#X}", &request.len(), &request.as_hex());
-//        println!("length(size: {}): {:#X}", &encoded_request_length.len(), &encoded_request_length.as_hex());
-//        println!("header(size: {}): {:#X}", &header.len(), &header.as_hex());
-//        println!("body(size: {}): {:#X}", &body.len(), &body.as_hex());
-//        println!("payload(size: {}): {:#X}", &payload.len(), &payload.as_hex());
-//        println!("payload(as text): {}", String::from_utf8_lossy(&payload));
+        debug!("Greeting: {:?}", &self.greeting_packet);
+        debug!("request(size: {}): {:#X}", &request.len(), &request.as_hex());
+        debug!("length(size: {}): {:#X}", &encoded_request_length.len(), &encoded_request_length.as_hex());
+        debug!("header(size: {}): {:#X}", &header.len(), &header.as_hex());
+        debug!("body(size: {}): {:#X}", &body.len(), &body.as_hex());
+        debug!("payload(size: {}): {:#X}", &payload.len(), &payload.as_hex());
+        debug!("payload(as text): {}", String::from_utf8_lossy(&payload));
         let header = Header {
           code: BigEndian::read_u32(&payload[3..8]),
           sync: BigEndian::read_u64(&payload[9..17]),
           schema_id: BigEndian::read_u32(&payload[19..23]),
         };
-        //println!("body: {:#X}", &payload[..23].as_hex());
         Response {
             header: header,
             body:
@@ -232,8 +231,8 @@ impl<'a> Tarantool<'a> {
 
     pub fn insert(&mut self, space: u16, keys: Vec<Value>) -> Result<Value, String> {
         let mut keys_buffer = Vec::new();
-        let keys = Value::Array(keys);
-        keys.serialize(&mut Serializer::new(&mut keys_buffer)).unwrap();
+        let wrapped_keys = Value::Array(keys);
+        wrapped_keys.serialize(&mut Serializer::new(&mut keys_buffer)).unwrap();
         if keys_buffer.len() == 1 {
             keys_buffer = [
                 &[0x91][..],
@@ -245,7 +244,8 @@ impl<'a> Tarantool<'a> {
         let mut body = [
             &[0x86][..],
             &[Code::SpaceId as u8][..],
-            &[Code::Key as u8][..],
+            &[0xCD, 0x0, 0x0][..],
+            &[Code::Tuple as u8][..],
             &keys_buffer[..]
         ].concat();
         BigEndian::write_u16(&mut body[3..5], space);
