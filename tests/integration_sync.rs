@@ -41,7 +41,7 @@ fn tarantool_insert_select() {
     let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
         panic!("Tarantool auth error: {:?}", &err);
     });
-    let inserting_value = vec![Value::U64(4), Value::String(String::from("White Room")), Value::U64(2017)];
+    let inserting_value = vec![Value::from(6), Value::String("Black Room".to_string()), Value::from(2017)];
     let result = tarantool_instance.insert(512, inserting_value).unwrap_or_else(|err| {
         panic!("Tarantool insert error: {:?}", &err);
     });
