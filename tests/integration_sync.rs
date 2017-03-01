@@ -37,7 +37,7 @@ fn tarantool_sync_select() {
 }
 
 #[test]
-fn tarantool_insert_select() {
+fn tarantool_sync_insert() {
     let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
         panic!("Tarantool auth error: {:?}", &err);
     });
@@ -49,7 +49,7 @@ fn tarantool_insert_select() {
 }
 
 #[test]
-fn tarantool_replace_select() {
+fn tarantool_sync_replace() {
     let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
         panic!("Tarantool auth error: {:?}", &err);
     });
@@ -59,6 +59,7 @@ fn tarantool_replace_select() {
     });
     println!("Result: {:?}", result);
 }
+
 
 
 #[test]
