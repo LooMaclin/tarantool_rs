@@ -181,14 +181,7 @@ impl<'a> Tarantool<'a> {
 
     pub fn select<I>(&mut self, space: u16, index: u8, limit: u8, offset: u8, iterator: IteratorType, keys: I ) -> Result<Vec<Value>, String>
     where I: Serialize {
-        let mut keys_buffer = Vec::new();
-        keys.serialize(&mut Serializer::new(&mut keys_buffer));
-        if keys_buffer.len() == 1 {
-            keys_buffer = [
-                &[0x91][..],
-                &keys_buffer[..]
-            ].concat();
-        }
+        let keys_buffer = Tarantool::serialize_keys(keys);
         let request_id = self.get_id();
         let header = self.header(RequestTypeKey::Select, request_id);
         let mut body = [
@@ -233,15 +226,8 @@ impl<'a> Tarantool<'a> {
     }
 
     pub fn insert(&mut self, space: u16, keys: Vec<Value>) -> Result<Value, String> {
-        let mut keys_buffer = Vec::new();
         let wrapped_keys = Value::Array(keys);
-        wrapped_keys.serialize(&mut Serializer::new(&mut keys_buffer)).unwrap();
-        if keys_buffer.len() == 1 {
-            keys_buffer = [
-                &[0x91][..],
-                &keys_buffer[..]
-            ].concat();
-        }
+        let keys_buffer = Tarantool::serialize_keys(wrapped_keys);
         let request_id = self.get_id();
         let header = self.header(RequestTypeKey::Insert, request_id);
         let mut body = [
@@ -316,8 +302,7 @@ impl<'a> Tarantool<'a> {
         }
     }
 
-    pub fn update_integer<I>(&mut self, space: u16, index: u8, keys: I, operation_type: IntegerOperation, field_number: u8, argument: u32) -> Result<Value, String>
-        where I: Serialize {
+    pub fn serialize_keys<I>(keys: I) -> Vec<u8> where I: Serialize {
         let mut keys_buffer = Vec::new();
         keys.serialize(&mut Serializer::new(&mut keys_buffer));
         if keys_buffer.len() == 1 {
@@ -326,6 +311,12 @@ impl<'a> Tarantool<'a> {
                 &keys_buffer[..]
             ].concat();
         }
+        keys_buffer
+    }
+
+    pub fn update_integer<I>(&mut self, space: u16, index: u8, keys: I, operation_type: IntegerOperation, field_number: u8, argument: u32) -> Result<Value, String>
+        where I: Serialize {
+        let keys_buffer = Tarantool::serialize_keys(keys);
         let request_id = self.get_id();
         let header = self.header(RequestTypeKey::Update, request_id);
         let wrapped_argument = Value::from(argument);
