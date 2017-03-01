@@ -316,7 +316,7 @@ impl<'a> Tarantool<'a> {
         }
     }
 
-    pub fn update_integer<I>(&mut self, space: u16, index: u8, keys: I, operation_type: IntegerOperation, field_number: u8, argument: u32) -> Result<Vec<Value>, String>
+    pub fn update_integer<I>(&mut self, space: u16, index: u8, keys: I, operation_type: IntegerOperation, field_number: u8, argument: u32) -> Result<Value, String>
         where I: Serialize {
         let mut keys_buffer = Vec::new();
         keys.serialize(&mut Serializer::new(&mut keys_buffer));
@@ -327,7 +327,7 @@ impl<'a> Tarantool<'a> {
             ].concat();
         }
         let request_id = self.get_id();
-        let header = self.header(RequestTypeKey::Select, request_id);
+        let header = self.header(RequestTypeKey::Update, request_id);
         let wrapped_argument = Value::from(argument);
         let mut serialized_argument = Vec::new();
         wrapped_argument.serialize(&mut Serializer::new(&mut serialized_argument)).unwrap();
@@ -340,7 +340,7 @@ impl<'a> Tarantool<'a> {
             &[Code::Key as u8][..],
             &keys_buffer[..],
             &[Code::Tuple as u8][..],
-            &[FIX_STR_PREFIX, operation_type as u8, field_number][..],
+            &[0x91, 0x93, FIX_STR_PREFIX, operation_type as u8, field_number][..],
             &serialized_argument[..],
         ].concat();
         BigEndian::write_u16(&mut body[3..5], space);
@@ -354,10 +354,7 @@ impl<'a> Tarantool<'a> {
                     _ => panic!("Operation result code is't number.")
                 };
                 if code == 48 {
-                    match content {
-                        Value::Array(result) => Ok(result),
-                        _ => Err("Response body content is't array.".to_string())
-                    }
+                    Ok(content)
                 } else {
                     match content {
                         Value::String(result) => Err(result),
