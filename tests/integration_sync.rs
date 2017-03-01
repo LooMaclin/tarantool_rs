@@ -22,6 +22,8 @@ use tokio_core::reactor::Core;
 use tokio_service::Service;
 use test::Bencher;
 
+use tarantool::operation::IntegerOperation;
+
 #[test]
 fn tarantool_sync_select() {
     let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
@@ -58,6 +60,16 @@ fn tarantool_sync_replace() {
         panic!("Tarantool insert error: {:?}", &err);
     });
     println!("Result: {:?}", result);
+}
+
+#[test]
+fn tarantool_sync_update_integer() {
+    let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
+        panic!("Tarantool auth error: {:?}", &err);
+    });
+    let tuples = tarantool_instance.update_integer(512, 0, (3), IntegerOperation::Addition, 2, 5).unwrap_or_else(|err| {
+        panic!("Tarantool select error: {:?}", &err);
+    });
 }
 
 
