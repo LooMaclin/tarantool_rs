@@ -25,6 +25,9 @@ use rmpv::decode::value::{read_value, Error};
 use std::clone::Clone;
 use rmpv::ValueRef;
 use rmpv::decode::value_ref::read_value_ref;
+use operation::IntegerOperation;
+use operation::StringOperation;
+use operation::FIX_STR_PREFIX;
 
 #[derive(Debug)]
 pub struct Tarantool<'a> {
@@ -302,6 +305,59 @@ impl<'a> Tarantool<'a> {
                 };
                 if code == 48 {
                     Ok(content)
+                } else {
+                    match content {
+                        Value::String(result) => Err(result),
+                        _ => Err("Error content is't string.".to_string())
+                    }
+                }
+            },
+            _ => Err("Read data error.".to_string()),
+        }
+    }
+
+    pub fn update_integer<I>(&mut self, space: u16, index: u8, keys: I, operation_type: IntegerOperation, field_number: u8, argument: u32) -> Result<Vec<Value>, String>
+        where I: Serialize {
+        let mut keys_buffer = Vec::new();
+        keys.serialize(&mut Serializer::new(&mut keys_buffer));
+        if keys_buffer.len() == 1 {
+            keys_buffer = [
+                &[0x91][..],
+                &keys_buffer[..]
+            ].concat();
+        }
+        let request_id = self.get_id();
+        let header = self.header(RequestTypeKey::Select, request_id);
+        let wrapped_argument = Value::from(argument);
+        let mut serialized_argument = Vec::new();
+        wrapped_argument.serialize(&mut Serializer::new(&mut serialized_argument)).unwrap();
+        let mut body = [
+            &[0x86][..],
+            &[Code::SpaceId as u8][..],
+            &[0xCD, 0x0, 0x0][..],
+            &[Code::IndexId as u8][..],
+            &[index][..],
+            &[Code::Key as u8][..],
+            &keys_buffer[..],
+            &[Code::Tuple as u8][..],
+            &[FIX_STR_PREFIX, operation_type as u8, field_number][..],
+            &serialized_argument[..],
+        ].concat();
+        BigEndian::write_u16(&mut body[3..5], space);
+        let response = self.request(&header, &body);
+        let data = response.body.ok_or("Body is empty.")?;
+        match read_value(&mut &data[..]).unwrap() {
+            Value::Map(mut data) => {
+                let (code, content) = data.remove(0);
+                let code = match code {
+                    Value::U64(code) => code,
+                    _ => panic!("Operation result code is't number.")
+                };
+                if code == 48 {
+                    match content {
+                        Value::Array(result) => Ok(result),
+                        _ => Err("Response body content is't array.".to_string())
+                    }
                 } else {
                     match content {
                         Value::String(result) => Err(result),
