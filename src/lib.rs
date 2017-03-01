@@ -28,6 +28,6 @@ pub mod tarantool;
 pub mod code;
 pub mod greeting_packet;
 pub mod greeting_packet_parameters;
+pub mod operation;
 pub mod request_type_key;
-pub mod protocol_parts;
 pub mod iterator_type;
