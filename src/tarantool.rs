@@ -303,6 +303,32 @@ impl<'a> Tarantool<'a> {
         let response = self.request(&header, &body);
         Tarantool::process_response(&response)
     }
+
+    pub fn update_string<I, S>(&mut self, space: u16, index: u8, keys: I, field_number: u8, position: u8, offset: u8, argument: S) -> Result<Value, String>
+        where I: Serialize,
+              S: Into<Cow<'a,str>> + Serialize {
+        let keys_buffer = Tarantool::serialize_keys(keys);
+        let request_id = self.get_id();
+        let header = self.header(RequestTypeKey::Update, request_id);
+        let wrapped_argument = Value::String(argument.into().into_owned());
+        let mut serialized_argument = Vec::new();
+        wrapped_argument.serialize(&mut Serializer::new(&mut serialized_argument)).unwrap();
+        let mut body = [
+            &[0x86][..],
+            &[Code::SpaceId as u8][..],
+            &[0xCD, 0x0, 0x0][..],
+            &[Code::IndexId as u8][..],
+            &[index][..],
+            &[Code::Key as u8][..],
+            &keys_buffer[..],
+            &[Code::Tuple as u8][..],
+            &[0x91, 0x95, FIX_STR_PREFIX, StringOperation::Splice as u8, field_number, position, offset][..],
+            &serialized_argument[..],
+        ].concat();
+        BigEndian::write_u16(&mut body[3..5], space);
+        let response = self.request(&header, &body);
+        Tarantool::process_response(&response)
+    }
 }
 
 #[cfg(test)]
