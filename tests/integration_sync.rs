@@ -32,7 +32,7 @@ fn tarantool_sync_select() {
     let tuples = tarantool_instance.select(512, 0, 10, 0, IteratorType::All, (3)).unwrap_or_else(|err| {
         panic!("Tarantool select error: {:?}", &err);
     });
-    for (index, tuple) in tuples.iter().enumerate() {
+    for (index, tuple) in tuples.as_array().unwrap().iter().enumerate() {
         let tuple = tuple.as_array().unwrap();
         println!("{}: {:?}", index, tuple);
     }
@@ -43,7 +43,7 @@ fn tarantool_sync_insert() {
     let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
         panic!("Tarantool auth error: {:?}", &err);
     });
-    let inserting_value = vec![Value::from(6), Value::String("Black Room".to_string()), Value::from(2017)];
+    let inserting_value = vec![Value::from(12), Value::String("Black Room".to_string()), Value::from(2017)];
     let result = tarantool_instance.insert(512, inserting_value).unwrap_or_else(|err| {
         panic!("Tarantool insert error: {:?}", &err);
     });
