@@ -23,6 +23,7 @@ use tokio_service::Service;
 use test::Bencher;
 
 use tarantool::operation::IntegerOperation;
+use tarantool::operation::UpsertOperation;
 use tarantool::operation::CommonOperation;
 
 #[test]
@@ -106,25 +107,25 @@ fn tarantool_sync_delete() {
 }
 
 #[test]
-fn tarantool_sync_call_16() {
-    let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
-        panic!("Tarantool auth error: {:?}", &err);
-    });
-    let function_argument = vec![Value::from(12)];
-    let result = tarantool_instance.call("test", function_argument).unwrap_or_else(|err| {
-        panic!("Tarantool call 16 error: {:?}", &err);
-    });
-    println!("Result: {:?}", result);
-}
-
-#[test]
 fn tarantool_sync_call() {
     let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
         panic!("Tarantool auth error: {:?}", &err);
     });
     let function_argument = vec![Value::from(12)];
-    let result = tarantool_instance.call_16("test", function_argument).unwrap_or_else(|err| {
+    let result = tarantool_instance.call("test", function_argument).unwrap_or_else(|err| {
         panic!("Tarantool call error: {:?}", &err);
+    });
+    println!("Result: {:?}", result);
+}
+
+#[test]
+fn tarantool_sync_call_16() {
+    let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
+        panic!("Tarantool auth error: {:?}", &err);
+    });
+    let function_argument = vec![Value::from(12)];
+    let result = tarantool_instance.call_16("test", function_argument).unwrap_or_else(|err| {
+        panic!("Tarantool call 16 error: {:?}", &err);
     });
     println!("Result: {:?}", result);
 }
@@ -139,6 +140,16 @@ fn tarantool_sync_eval() {
         panic!("Tarantool eval error: {:?}", &err);
     });
     println!("Result: {:?}", result);
+}
+
+#[test]
+fn tarantool_sync_upsert() {
+    let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
+        panic!("Tarantool auth error: {:?}", &err);
+    });
+    let tuples = tarantool_instance.upsert(512, (3), UpsertOperation::Add, 2, 5).unwrap_or_else(|err| {
+        panic!("Tarantool select error: {:?}", &err);
+    });
 }
 
 
