@@ -27,6 +27,7 @@ use rmpv::ValueRef;
 use rmpv::decode::value_ref::read_value_ref;
 use operation::IntegerOperation;
 use operation::StringOperation;
+use operation::CommonOperation;
 use operation::FIX_STR_PREFIX;
 
 #[derive(Debug)]
@@ -323,6 +324,31 @@ impl<'a> Tarantool<'a> {
             &keys_buffer[..],
             &[Code::Tuple as u8][..],
             &[0x91, 0x95, FIX_STR_PREFIX, StringOperation::Splice as u8, field_number, position, offset][..],
+            &serialized_argument[..],
+        ].concat();
+        BigEndian::write_u16(&mut body[3..5], space);
+        let response = self.request(&header, &body);
+        Tarantool::process_response(&response)
+    }
+
+    pub fn update_common<I>(&mut self, space: u16, index: u8, keys: I, operation_type: CommonOperation, field_number: u8, argument: Value) -> Result<Value, String>
+        where I: Serialize {
+        let keys_buffer = Tarantool::serialize_keys(keys);
+        let request_id = self.get_id();
+        let header = self.header(RequestTypeKey::Update, request_id);
+        let wrapped_argument = argument;
+        let mut serialized_argument = Vec::new();
+        wrapped_argument.serialize(&mut Serializer::new(&mut serialized_argument)).unwrap();
+        let mut body = [
+            &[0x86][..],
+            &[Code::SpaceId as u8][..],
+            &[0xCD, 0x0, 0x0][..],
+            &[Code::IndexId as u8][..],
+            &[index][..],
+            &[Code::Key as u8][..],
+            &keys_buffer[..],
+            &[Code::Tuple as u8][..],
+            &[0x91, 0x93, FIX_STR_PREFIX, operation_type as u8, field_number][..],
             &serialized_argument[..],
         ].concat();
         BigEndian::write_u16(&mut body[3..5], space);
