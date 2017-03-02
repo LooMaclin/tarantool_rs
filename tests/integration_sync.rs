@@ -111,7 +111,7 @@ fn tarantool_sync_call_16() {
         panic!("Tarantool auth error: {:?}", &err);
     });
     let function_argument = vec![Value::from(12)];
-    let result = tarantool_instance.call(512, "test", function_argument).unwrap_or_else(|err| {
+    let result = tarantool_instance.call("test", function_argument).unwrap_or_else(|err| {
         panic!("Tarantool call 16 error: {:?}", &err);
     });
     println!("Result: {:?}", result);
@@ -123,7 +123,7 @@ fn tarantool_sync_call() {
         panic!("Tarantool auth error: {:?}", &err);
     });
     let function_argument = vec![Value::from(12)];
-    let result = tarantool_instance.call_16(512, "test", function_argument).unwrap_or_else(|err| {
+    let result = tarantool_instance.call_16("test", function_argument).unwrap_or_else(|err| {
         panic!("Tarantool call error: {:?}", &err);
     });
     println!("Result: {:?}", result);
@@ -135,7 +135,7 @@ fn tarantool_sync_eval() {
         panic!("Tarantool auth error: {:?}", &err);
     });
     let function_argument = vec![];
-    let result = tarantool_instance.eval(512, "test()", function_argument).unwrap_or_else(|err| {
+    let result = tarantool_instance.eval("test()", function_argument).unwrap_or_else(|err| {
         panic!("Tarantool eval error: {:?}", &err);
     });
     println!("Result: {:?}", result);
