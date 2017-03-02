@@ -355,6 +355,25 @@ impl<'a> Tarantool<'a> {
         let response = self.request(&header, &body);
         Tarantool::process_response(&response)
     }
+
+    pub fn delete(&mut self, space: u16, index: u8, keys: Vec<Value>) -> Result<Value, String> {
+        let wrapped_keys = Value::Array(keys);
+        let keys_buffer = Tarantool::serialize_keys(wrapped_keys);
+        let request_id = self.get_id();
+        let header = self.header(RequestTypeKey::Delete, request_id);
+        let mut body = [
+            &[0x86][..],
+            &[Code::SpaceId as u8][..],
+            &[0xCD, 0x0, 0x0][..],
+            &[Code::IndexId as u8][..],
+            &[index][..],
+            &[Code::Key as u8][..],
+            &keys_buffer[..]
+        ].concat();
+        BigEndian::write_u16(&mut body[3..5], space);
+        let response = self.request(&header, &body);
+        Tarantool::process_response(&response)
+    }
 }
 
 #[cfg(test)]
