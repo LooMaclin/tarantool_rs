@@ -27,12 +27,13 @@ struct TarantoolCodec;
 struct TarantoolProto;
 
 impl TarantoolAsyncClient {
-
-    pub fn connect(addr: &SocketAddr, handle: &Handle) -> Box<Future<Item = TarantoolAsyncClient, Error = io::Error>> {
+    pub fn connect(addr: &SocketAddr,
+                   handle: &Handle)
+                   -> Box<Future<Item = TarantoolAsyncClient, Error = io::Error>> {
         let ret = TcpClient::new(TarantoolProto)
             .connect(addr, handle)
             .map(|client_service| {
-                let validate = Validate { inner: client_service};
+                let validate = Validate { inner: client_service };
                 TarantoolAsyncClient { inner: validate }
             });
 
@@ -52,8 +53,8 @@ impl Service for TarantoolAsyncClient {
 }
 
 impl<T> Service for Validate<T>
-where T: Service<Request = Vec<u8>, Response = Vec<u8>, Error = io::Error>,
-      T::Future: 'static,
+    where T: Service<Request = Vec<u8>, Response = Vec<u8>, Error = io::Error>,
+          T::Future: 'static
 {
     type Request = Vec<u8>;
     type Response = Vec<u8>;
@@ -61,16 +62,15 @@ where T: Service<Request = Vec<u8>, Response = Vec<u8>, Error = io::Error>,
     type Future = Box<Future<Item = Vec<u8>, Error = io::Error>>;
 
     fn call(&self, req: Vec<u8>) -> Self::Future {
-        Box::new(self.inner.call(req)
-            .and_then(|resp| {
-                    Ok(resp)
-            }))
+        Box::new(self.inner
+            .call(req)
+            .and_then(|resp| Ok(resp)))
     }
 }
 
 impl<T> NewService for Validate<T>
-where T: NewService<Request = Vec<u8>, Response = Vec<u8>, Error = io::Error>,
-      <T::Instance as Service>::Future: 'static
+    where T: NewService<Request = Vec<u8>, Response = Vec<u8>, Error = io::Error>,
+          <T::Instance as Service>::Future: 'static
 {
     type Request = Vec<u8>;
     type Response = Vec<u8>;
@@ -89,22 +89,21 @@ impl Codec for TarantoolCodec {
 
     fn decode(&mut self, buf: &mut EasyBuf) -> Result<Option<(RequestId, Vec<u8>)>, io::Error> {
         if buf.len() == 128 {
-            return Ok(Some((1 as RequestId, vec![1,2,3])));
+            return Ok(Some((1 as RequestId, vec![1, 2, 3])));
         }
-        /*
-        if let Some(n) = buf.as_ref()[4..].iter().position(|b| *b == b'\n') {
-            let line = buf.drain_to(n + 4);
-            buf.drain_to(1);
-            let request_id = BigEndian::read_u32(&line.as_ref()[0..4]);
-            return match str::from_utf8(&line.as_ref()[4..]) {
-                Ok(s) => Ok(Some((request_id as RequestId, s.to_string()))),
-                Err(_) => Err(io::Error::new(io::ErrorKind::Other, "invalid string")),
-            }
-        }*/
+        // if let Some(n) = buf.as_ref()[4..].iter().position(|b| *b == b'\n') {
+        // let line = buf.drain_to(n + 4);
+        // buf.drain_to(1);
+        // let request_id = BigEndian::read_u32(&line.as_ref()[0..4]);
+        // return match str::from_utf8(&line.as_ref()[4..]) {
+        // Ok(s) => Ok(Some((request_id as RequestId, s.to_string()))),
+        // Err(_) => Err(io::Error::new(io::ErrorKind::Other, "invalid string")),
+        // }
+        // }
         Ok(None)
     }
 
-    fn encode(&mut self, msg: (RequestId,Vec<u8>), buf: &mut Vec<u8>) -> io::Result<()> {
+    fn encode(&mut self, msg: (RequestId, Vec<u8>), buf: &mut Vec<u8>) -> io::Result<()> {
         let (request_id, msg) = msg;
 
         let mut encoded_request_id = [0; 4];

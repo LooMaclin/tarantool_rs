@@ -1,7 +1,7 @@
 pub enum RequestTypeKey {
-    /* Command is successful */
+    // Command is successful
     Ok = 0x00,
-    /* User command codes */
+    // User command codes
     Select = 0x01,
     Insert = 0x02,
     Replace = 0x03,
@@ -13,7 +13,7 @@ pub enum RequestTypeKey {
     Upsert = 0x09,
     Call = 0x0a,
     TypeStatMax = 0x0b,
-    /* Admin command codes */
+    // Admin command codes
     Ping = 0x40,
     Join = 0x41,
     Subscribe = 0x42,

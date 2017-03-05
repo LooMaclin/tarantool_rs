@@ -31,5 +31,7 @@ pub mod greeting_packet_parameters;
 pub mod operation;
 pub mod request_type_key;
 pub mod iterator_type;
+mod header;
+mod response;
 
 pub use rmpv::Value;

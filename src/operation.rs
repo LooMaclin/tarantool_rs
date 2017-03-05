@@ -24,4 +24,4 @@ pub enum UpsertOperation {
     Delete = 0x23,
 }
 
-pub const FIX_STR_PREFIX : u8 = 0xA1;
+pub const FIX_STR_PREFIX: u8 = 0xA1;
