@@ -4,6 +4,9 @@ extern crate rmp_serde;
 extern crate serde;
 
 #[macro_use]
+extern crate derive_builder;
+
+#[macro_use]
 extern crate rmp;
 
 extern crate base64;
@@ -31,7 +34,8 @@ pub mod greeting_packet_parameters;
 pub mod operation;
 pub mod request_type_key;
 pub mod iterator_type;
-mod header;
-mod response;
+pub mod header;
+pub mod response;
+mod select;
 
 pub use rmpv::Value;
