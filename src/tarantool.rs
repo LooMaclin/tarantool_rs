@@ -77,16 +77,7 @@ impl<'a> Tarantool<'a> {
         self.request_id
     }
 
-    pub fn header(&self, command: RequestTypeKey, request_id: u32) -> Vec<u8> {
-        let mut encoded_header = [&[0x82][..],
-                                  &[Code::RequestType as u8][..],
-                                  &[command as u8][..],
-                                  &[Code::Sync as u8][..],
-                                  &[0, 0, 0, 0, 0]]
-            .concat();
-        write_u32(&mut &mut encoded_header[4..], request_id).ok().unwrap();
-        encoded_header
-    }
+
 
     pub fn request(&mut self, header: &[u8], body: &[u8]) -> Response {
         let mut encoded_request_length = [0x00, 0x00, 0x00, 0x00, 0x00];
@@ -445,6 +436,17 @@ impl<'a> Tarantool<'a> {
         let response = self.request(&header, &body);
         Tarantool::process_response(&response)
     }
+}
+
+pub fn header(command: RequestTypeKey, request_id: u32) -> Vec<u8> {
+    let mut encoded_header = [&[0x82][..],
+        &[Code::RequestType as u8][..],
+        &[command as u8][..],
+        &[Code::Sync as u8][..],
+        &[0, 0, 0, 0, 0]]
+        .concat();
+    write_u32(&mut &mut encoded_header[4..], request_id).ok().unwrap();
+    encoded_header
 }
 
 #[cfg(test)]
