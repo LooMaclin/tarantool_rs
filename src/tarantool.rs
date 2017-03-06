@@ -77,46 +77,6 @@ impl<'a> Tarantool<'a> {
         self.request_id
     }
 
-
-
-    pub fn request(&mut self, header: &[u8], body: &[u8]) -> Response {
-        let mut encoded_request_length = [0x00, 0x00, 0x00, 0x00, 0x00];
-        write_u32(&mut &mut encoded_request_length[..],
-                  (header.len() + body.len()) as u32)
-            .ok()
-            .unwrap();
-        let request = [&encoded_request_length[..], &header[..], &body[..]].concat();
-        self.socket.write(&request);
-        let response_length = Tarantool::read_length(&mut self.socket);
-        let payload = &self.read_payload(response_length)[..response_length as usize];
-        debug!("Greeting: {:?}", &self.greeting_packet);
-        debug!("request(size: {}): {:#X}",
-               &request.len(),
-               &request.as_hex());
-        debug!("length(size: {}): {:#X}",
-               &encoded_request_length.len(),
-               &encoded_request_length.as_hex());
-        debug!("header(size: {}): {:#X}", &header.len(), &header.as_hex());
-        debug!("body(size: {}): {:#X}", &body.len(), &body.as_hex());
-        debug!("payload(size: {}): {:#X}",
-               &payload.len(),
-               &payload.as_hex());
-        debug!("payload(as text): {}", String::from_utf8_lossy(&payload));
-        let header = Header {
-            code: BigEndian::read_u32(&payload[3..8]),
-            sync: BigEndian::read_u64(&payload[9..17]),
-            schema_id: BigEndian::read_u32(&payload[19..23]),
-        };
-        Response {
-            header: header,
-            body: if payload.len() > 24 {
-                Some(payload[23..payload.len()].to_vec())
-            } else {
-                Option::None
-            },
-        }
-    }
-
     fn read_length<I>(stream: &mut I) -> u32
         where I: Read
     {
@@ -447,6 +407,45 @@ pub fn header(command: RequestTypeKey, request_id: u32) -> Vec<u8> {
         .concat();
     write_u32(&mut &mut encoded_header[4..], request_id).ok().unwrap();
     encoded_header
+}
+
+pub fn request<I>(header: &[u8], body: &[u8], descriptor: &mut I) -> Response
+    where I: std::io::Write + std::io::Read {
+    let mut encoded_request_length = [0x00, 0x00, 0x00, 0x00, 0x00];
+    write_u32(&mut &mut encoded_request_length[..],
+              (header.len() + body.len()) as u32)
+        .ok()
+        .unwrap();
+    let request = [&encoded_request_length[..], &header[..], &body[..]].concat();
+    descriptor.write(&request);
+    let response_length = Tarantool::read_length(&mut descriptor);
+    let payload = &self.read_payload(response_length)[..response_length as usize];
+    debug!("Greeting: {:?}", &self.greeting_packet);
+    debug!("request(size: {}): {:#X}",
+    &request.len(),
+    &request.as_hex());
+    debug!("length(size: {}): {:#X}",
+    &encoded_request_length.len(),
+    &encoded_request_length.as_hex());
+    debug!("header(size: {}): {:#X}", &header.len(), &header.as_hex());
+    debug!("body(size: {}): {:#X}", &body.len(), &body.as_hex());
+    debug!("payload(size: {}): {:#X}",
+    &payload.len(),
+    &payload.as_hex());
+    debug!("payload(as text): {}", String::from_utf8_lossy(&payload));
+    let header = Header {
+        code: BigEndian::read_u32(&payload[3..8]),
+        sync: BigEndian::read_u64(&payload[9..17]),
+        schema_id: BigEndian::read_u32(&payload[19..23]),
+    };
+    Response {
+        header: header,
+        body: if payload.len() > 24 {
+            Some(payload[23..payload.len()].to_vec())
+        } else {
+            Option::None
+        },
+    }
 }
 
 #[cfg(test)]
