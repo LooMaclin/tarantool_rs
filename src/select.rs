@@ -1,5 +1,6 @@
 use iterator_type::IteratorType;
 use rmpv::Value;
+use tarantool::header;
 
 #[derive(Debug, Builder)]
 pub struct Select<'a> {
@@ -13,13 +14,12 @@ pub struct Select<'a> {
 }
 
 impl Select {
-    pub fn perform<I>()
+    pub fn perform<I>(&self)
                      -> Result<Value, String>
         where I: Serialize
     {
         let keys_buffer = Tarantool::serialize_keys(keys);
-        let request_id = self.get_id();
-        let header = self.header(RequestTypeKey::Select, request_id);
+        let header = header(RequestTypeKey::Select, self.id);
         let mut body = [&[0x86][..],
             &[Code::SpaceId as u8][..],
             &[0xCD, 0x0, 0x0][..],
