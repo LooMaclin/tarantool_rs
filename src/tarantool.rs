@@ -87,12 +87,6 @@ impl<'a> Tarantool<'a> {
         length
     }
 
-    pub fn read_payload(&mut self, length: u32) -> [u8; 8192] {
-        let mut payload = [0u8; 8192];
-        self.socket.read(&mut payload);
-        payload
-    }
-
     fn scramble<S>(salt: S, password: S) -> Vec<u8>
         where S: Into<Cow<'a, str>>
     {
@@ -398,6 +392,13 @@ impl<'a> Tarantool<'a> {
     }
 }
 
+pub fn read_payload<I>(length: u32, descriptor: &mut I) -> [u8; 8192]
+    where I: std::io::Read {
+    let mut payload = [0u8; 8192];
+    descriptor.read(&mut payload);
+    payload
+}
+
 pub fn header(command: RequestTypeKey, request_id: u32) -> Vec<u8> {
     let mut encoded_header = [&[0x82][..],
         &[Code::RequestType as u8][..],
@@ -420,7 +421,6 @@ pub fn request<I>(header: &[u8], body: &[u8], descriptor: &mut I) -> Response
     descriptor.write(&request);
     let response_length = Tarantool::read_length(&mut descriptor);
     let payload = &self.read_payload(response_length)[..response_length as usize];
-    debug!("Greeting: {:?}", &self.greeting_packet);
     debug!("request(size: {}): {:#X}",
     &request.len(),
     &request.as_hex());

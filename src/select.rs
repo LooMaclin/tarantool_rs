@@ -1,6 +1,6 @@
 use iterator_type::IteratorType;
 use rmpv::Value;
-use tarantool::header;
+use tarantool::{header, request};
 
 #[derive(Debug, Builder)]
 pub struct Select<'a> {
@@ -35,7 +35,7 @@ impl Select {
             &keys_buffer[..]]
             .concat();
         BigEndian::write_u16(&mut body[3..5], space);
-        let response = self.request(&header, &body);
+        let response = request(&header, &body);
         Tarantool::process_response(&response)
     }
 }
