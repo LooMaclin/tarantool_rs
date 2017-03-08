@@ -1,7 +1,6 @@
 use std::borrow::Cow;
 use std::net::TcpStream;
-use std::io::Read;
-use std::io::Write;
+use std::io::{Read, Write};
 use std::io::Cursor;
 use std::collections::HashMap;
 use std::str::from_utf8;
@@ -62,11 +61,11 @@ impl<'a> Tarantool<'a> {
         };
         let scramble = Tarantool::scramble(&*tarantool.greeting_packet.salt, &*tarantool.password);
         let id = tarantool.get_id();
-        let header = tarantool.header(RequestTypeKey::Auth, id);
+        let header = header(RequestTypeKey::Auth, id);
         let mut chap_sha1_encoded = Vec::new();
         "chap-sha1".encode(&mut Encoder::new(&mut &mut chap_sha1_encoded[..]));
         let body = Tarantool::build_auth_body(tarantool.user.clone(), &scramble);
-        match tarantool.request(&header, &body).body {
+        match request(&header, &body, &mut tarantool.socket).body {
             Some(data) => Err(String::from_utf8(data).unwrap()),
             None => Ok(tarantool),
         }
@@ -120,22 +119,6 @@ impl<'a> Tarantool<'a> {
             .concat()
     }
 
-    pub fn insert(&mut self, space: u16, keys: Vec<Value>) -> Result<Value, String> {
-        let wrapped_keys = Value::Array(keys);
-        let keys_buffer = Tarantool::serialize_keys(wrapped_keys);
-        let request_id = self.get_id();
-        let header = self.header(RequestTypeKey::Insert, request_id);
-        let mut body = [&[0x82][..],
-                        &[Code::SpaceId as u8][..],
-                        &[0xCD, 0x0, 0x0][..],
-                        &[Code::Tuple as u8][..],
-                        &keys_buffer[..]]
-            .concat();
-        BigEndian::write_u16(&mut body[3..5], space);
-        let response = self.request(&header, &body);
-        Tarantool::process_response(&response)
-    }
-
     pub fn replace(&mut self, space: u16, keys: Vec<Value>) -> Result<Value, String> {
         let mut keys_buffer = Vec::new();
         let wrapped_keys = Value::Array(keys);
@@ -144,7 +127,7 @@ impl<'a> Tarantool<'a> {
             keys_buffer = [&[0x91][..], &keys_buffer[..]].concat();
         }
         let request_id = self.get_id();
-        let header = self.header(RequestTypeKey::Replace, request_id);
+        let header = header(RequestTypeKey::Replace, request_id);
         let mut body = [&[0x82][..],
                         &[Code::SpaceId as u8][..],
                         &[0xCD, 0x0, 0x0][..],
@@ -152,41 +135,8 @@ impl<'a> Tarantool<'a> {
                         &keys_buffer[..]]
             .concat();
         BigEndian::write_u16(&mut body[3..5], space);
-        let response = self.request(&header, &body);
-        Tarantool::process_response(&response)
-    }
-
-    pub fn serialize_keys<I>(keys: I) -> Vec<u8>
-        where I: Serialize
-    {
-        let mut keys_buffer = Vec::new();
-        keys.serialize(&mut Serializer::new(&mut keys_buffer));
-        if keys_buffer.len() == 1 {
-            keys_buffer = [&[0x91][..], &keys_buffer[..]].concat();
-        }
-        keys_buffer
-    }
-
-    pub fn process_response(response: &Response) -> Result<Value, String> {
-        let data = response.body.as_ref().ok_or("Body is empty.")?;
-        match read_value(&mut &data[..]).unwrap() {
-            Value::Map(mut data) => {
-                let (code, content) = data.remove(0);
-                let code = match code {
-                    Value::U64(code) => code,
-                    _ => panic!("Operation result code is't number."),
-                };
-                if code == 48 {
-                    Ok(content)
-                } else {
-                    match content {
-                        Value::String(result) => Err(result),
-                        _ => Err("Error content is't string.".to_string()),
-                    }
-                }
-            }
-            _ => Err("Read data error.".to_string()),
-        }
+        let response = request(&header, &body);
+        process_response(&response)
     }
 
     pub fn update_integer<I>(&mut self,
@@ -199,9 +149,9 @@ impl<'a> Tarantool<'a> {
                              -> Result<Value, String>
         where I: Serialize
     {
-        let keys_buffer = Tarantool::serialize_keys(keys);
+        let keys_buffer = serialize_keys(keys);
         let request_id = self.get_id();
-        let header = self.header(RequestTypeKey::Update, request_id);
+        let header = header(RequestTypeKey::Update, request_id);
         let wrapped_argument = Value::from(argument);
         let mut serialized_argument = Vec::new();
         wrapped_argument.serialize(&mut Serializer::new(&mut serialized_argument)).unwrap();
@@ -217,8 +167,8 @@ impl<'a> Tarantool<'a> {
                         &serialized_argument[..]]
             .concat();
         BigEndian::write_u16(&mut body[3..5], space);
-        let response = self.request(&header, &body);
-        Tarantool::process_response(&response)
+        let response = request(&header, &body);
+        process_response(&response)
     }
 
     pub fn update_string<I, S>(&mut self,
@@ -233,9 +183,9 @@ impl<'a> Tarantool<'a> {
         where I: Serialize,
               S: Into<Cow<'a, str>> + Serialize
     {
-        let keys_buffer = Tarantool::serialize_keys(keys);
+        let keys_buffer = serialize_keys(keys);
         let request_id = self.get_id();
-        let header = self.header(RequestTypeKey::Update, request_id);
+        let header = header(RequestTypeKey::Update, request_id);
         let wrapped_argument = Value::String(argument.into().into_owned());
         let mut serialized_argument = Vec::new();
         wrapped_argument.serialize(&mut Serializer::new(&mut serialized_argument)).unwrap();
@@ -257,8 +207,8 @@ impl<'a> Tarantool<'a> {
                         &serialized_argument[..]]
             .concat();
         BigEndian::write_u16(&mut body[3..5], space);
-        let response = self.request(&header, &body);
-        Tarantool::process_response(&response)
+        let response = request(&header, &body);
+        process_response(&response)
     }
 
     pub fn update_common<I>(&mut self,
@@ -271,9 +221,9 @@ impl<'a> Tarantool<'a> {
                             -> Result<Value, String>
         where I: Serialize
     {
-        let keys_buffer = Tarantool::serialize_keys(keys);
+        let keys_buffer = serialize_keys(keys);
         let request_id = self.get_id();
-        let header = self.header(RequestTypeKey::Update, request_id);
+        let header = header(RequestTypeKey::Update, request_id);
         let wrapped_argument = argument;
         let mut serialized_argument = Vec::new();
         wrapped_argument.serialize(&mut Serializer::new(&mut serialized_argument)).unwrap();
@@ -289,15 +239,15 @@ impl<'a> Tarantool<'a> {
                         &serialized_argument[..]]
             .concat();
         BigEndian::write_u16(&mut body[3..5], space);
-        let response = self.request(&header, &body);
-        Tarantool::process_response(&response)
+        let response = request(&header, &body);
+        process_response(&response)
     }
 
     pub fn delete(&mut self, space: u16, index: u8, keys: Vec<Value>) -> Result<Value, String> {
         let wrapped_keys = Value::Array(keys);
-        let keys_buffer = Tarantool::serialize_keys(wrapped_keys);
+        let keys_buffer = serialize_keys(wrapped_keys);
         let request_id = self.get_id();
-        let header = self.header(RequestTypeKey::Delete, request_id);
+        let header = header(RequestTypeKey::Delete, request_id);
         let mut body = [&[0x83][..],
                         &[Code::SpaceId as u8][..],
                         &[0xCD, 0x0, 0x0][..],
@@ -307,8 +257,8 @@ impl<'a> Tarantool<'a> {
                         &keys_buffer[..]]
             .concat();
         BigEndian::write_u16(&mut body[3..5], space);
-        let response = self.request(&header, &body);
-        Tarantool::process_response(&response)
+        let response = request(&header, &body);
+        process_response(&response)
     }
 
     pub fn call_16(&mut self,
@@ -316,84 +266,61 @@ impl<'a> Tarantool<'a> {
                    keys: Vec<Value>)
                    -> Result<Value, String> {
         let wrapped_keys = Value::Array(keys);
-        let keys_buffer = Tarantool::serialize_keys(wrapped_keys);
-        let function_name = Tarantool::serialize_keys(Value::String(function_name.into()));
+        let keys_buffer = serialize_keys(wrapped_keys);
+        let function_name = serialize_keys(Value::String(function_name.into()));
         let request_id = self.get_id();
-        let header = self.header(RequestTypeKey::Call16, request_id);
+        let header = header(RequestTypeKey::Call16, request_id);
         let mut body = [&[0x82][..],
                         &[Code::FunctionName as u8][..],
                         &function_name[..],
                         &[Code::Tuple as u8][..],
                         &keys_buffer[..]]
             .concat();
-        let response = self.request(&header, &body);
-        Tarantool::process_response(&response)
+        let response = request(&header, &body);
+        process_response(&response)
     }
 
     pub fn call(&mut self, function_name: &'static str, keys: Vec<Value>) -> Result<Value, String> {
         let wrapped_keys = Value::Array(keys);
-        let keys_buffer = Tarantool::serialize_keys(wrapped_keys);
-        let function_name = Tarantool::serialize_keys(Value::String(function_name.into()));
+        let keys_buffer = serialize_keys(wrapped_keys);
+        let function_name = serialize_keys(Value::String(function_name.into()));
         let request_id = self.get_id();
-        let header = self.header(RequestTypeKey::Call, request_id);
+        let header = header(RequestTypeKey::Call, request_id);
         let mut body = [&[0x82][..],
                         &[Code::FunctionName as u8][..],
                         &function_name[..],
                         &[Code::Tuple as u8][..],
                         &keys_buffer[..]]
             .concat();
-        let response = self.request(&header, &body);
-        Tarantool::process_response(&response)
+        let response = request(&header, &body);
+        process_response(&response)
     }
+}
 
-    pub fn eval(&mut self, expression: &'static str, keys: Vec<Value>) -> Result<Value, String> {
-        let wrapped_keys = Value::Array(keys);
-        let keys_buffer = Tarantool::serialize_keys(wrapped_keys);
-        let function_name = Tarantool::serialize_keys(Value::String(expression.into()));
-        let request_id = self.get_id();
-        let header = self.header(RequestTypeKey::Eval, request_id);
-        let mut body = [&[0x82][..],
-                        &[Code::EXPR as u8][..],
-                        &function_name[..],
-                        &[Code::Tuple as u8][..],
-                        &keys_buffer[..]]
-            .concat();
-        let response = self.request(&header, &body);
-        Tarantool::process_response(&response)
-    }
-
-    pub fn upsert<I>(&mut self,
-                     space: u16,
-                     keys: I,
-                     operation_type: UpsertOperation,
-                     field_number: u8,
-                     argument: u32)
-                     -> Result<Value, String>
-        where I: Serialize
-    {
-        let keys_buffer = Tarantool::serialize_keys(keys);
-        let request_id = self.get_id();
-        let header = self.header(RequestTypeKey::Update, request_id);
-        let wrapped_argument = Value::from(argument);
-        let mut serialized_argument = Vec::new();
-        wrapped_argument.serialize(&mut Serializer::new(&mut serialized_argument)).unwrap();
-        let mut body = [&[0x84][..],
-                        &[Code::SpaceId as u8][..],
-                        &[0xCD, 0x0, 0x0][..],
-                        &[Code::Key as u8][..],
-                        &keys_buffer[..],
-                        &[Code::Tuple as u8][..],
-                        &[0x91, 0x93, FIX_STR_PREFIX, operation_type as u8, field_number][..],
-                        &serialized_argument[..]]
-            .concat();
-        BigEndian::write_u16(&mut body[3..5], space);
-        let response = self.request(&header, &body);
-        Tarantool::process_response(&response)
+pub fn process_response(response: &Response) -> Result<Value, String> {
+    let data = response.body.as_ref().ok_or("Body is empty.")?;
+    match read_value(&mut &data[..]).unwrap() {
+        Value::Map(mut data) => {
+            let (code, content) = data.remove(0);
+            let code = match code {
+                Value::U64(code) => code,
+                _ => panic!("Operation result code is't number."),
+            };
+            if code == 48 {
+                Ok(content)
+            } else {
+                match content {
+                    Value::String(result) => Err(result),
+                    _ => Err("Error content is't string.".to_string()),
+                }
+            }
+        }
+        _ => Err("Read data error.".to_string()),
     }
 }
 
 pub fn read_payload<I>(length: u32, descriptor: &mut I) -> [u8; 8192]
-    where I: std::io::Read {
+    where I: Read {
     let mut payload = [0u8; 8192];
     descriptor.read(&mut payload);
     payload
@@ -411,7 +338,7 @@ pub fn header(command: RequestTypeKey, request_id: u32) -> Vec<u8> {
 }
 
 pub fn request<I>(header: &[u8], body: &[u8], descriptor: &mut I) -> Response
-    where I: std::io::Write + std::io::Read {
+    where I: Write + Read {
     let mut encoded_request_length = [0x00, 0x00, 0x00, 0x00, 0x00];
     write_u32(&mut &mut encoded_request_length[..],
               (header.len() + body.len()) as u32)
@@ -420,7 +347,7 @@ pub fn request<I>(header: &[u8], body: &[u8], descriptor: &mut I) -> Response
     let request = [&encoded_request_length[..], &header[..], &body[..]].concat();
     descriptor.write(&request);
     let response_length = Tarantool::read_length(&mut descriptor);
-    let payload = &self.read_payload(response_length)[..response_length as usize];
+    let payload = read_payload(response_length, descriptor)[..response_length as usize];
     debug!("request(size: {}): {:#X}",
     &request.len(),
     &request.as_hex());
@@ -446,6 +373,17 @@ pub fn request<I>(header: &[u8], body: &[u8], descriptor: &mut I) -> Response
             Option::None
         },
     }
+}
+
+pub fn serialize_keys<I>(keys: I) -> Vec<u8>
+    where I: Serialize
+{
+    let mut keys_buffer = Vec::new();
+    keys.serialize(&mut Serializer::new(&mut keys_buffer));
+    if keys_buffer.len() == 1 {
+        keys_buffer = [&[0x91][..], &keys_buffer[..]].concat();
+    }
+    keys_buffer
 }
 
 #[cfg(test)]

@@ -1,6 +1,10 @@
 use iterator_type::IteratorType;
 use rmpv::Value;
-use tarantool::{header, request};
+use tarantool::{header, request, serialize_keys, process_response};
+use byteorder::BigEndian;
+use request_type_key::RequestTypeKey;
+use code::Code;
+use serde::Serialize;
 
 #[derive(Debug, Builder)]
 pub struct Select<'a> {
@@ -13,30 +17,30 @@ pub struct Select<'a> {
     keys: &'a Vec<Value>,
 }
 
-impl Select {
+impl<'a> Select<'a> {
     pub fn perform<I>(&self)
                      -> Result<Value, String>
         where I: Serialize
     {
-        let keys_buffer = Tarantool::serialize_keys(keys);
+        let keys_buffer = serialize_keys(self.keys);
         let header = header(RequestTypeKey::Select, self.id);
         let mut body = [&[0x86][..],
             &[Code::SpaceId as u8][..],
             &[0xCD, 0x0, 0x0][..],
             &[Code::IndexId as u8][..],
-            &[index][..],
+            &[self.index][..],
             &[Code::Limit as u8][..],
-            &[limit][..],
+            &[self.limit][..],
             &[Code::Offset as u8][..],
-            &[offset][..],
+            &[self.offset][..],
             &[Code::Iterator as u8][..],
-            &[iterator as u8][..],
+            &[self.iterator as u8][..],
             &[Code::Key as u8][..],
             &keys_buffer[..]]
             .concat();
-        BigEndian::write_u16(&mut body[3..5], space);
+        BigEndian::write_u16(&mut body[3..5], self.space);
         let response = request(&header, &body);
-        Tarantool::process_response(&response)
+        process_response(&response)
     }
 }
 
