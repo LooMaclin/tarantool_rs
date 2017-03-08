@@ -24,9 +24,6 @@ extern crate tokio_service;
 #[macro_use]
 extern crate log;
 
-pub mod async_client;
-pub mod sync_client;
-pub mod client;
 pub mod tarantool;
 pub mod code;
 pub mod greeting_packet;

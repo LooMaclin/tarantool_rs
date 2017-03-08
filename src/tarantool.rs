@@ -75,226 +75,6 @@ impl<'a> Tarantool<'a> {
         self.request_id += 1;
         self.request_id
     }
-
-    fn read_length<I>(stream: &mut I) -> u32
-        where I: Read
-    {
-        let mut packet_length = [0x00, 0x00, 0x00, 0x00, 0x00];
-        stream.read(&mut packet_length);
-        let mut decoder = Decoder::new(&packet_length[..]);
-        let mut length = Decodable::decode(&mut decoder).unwrap();
-        length
-    }
-
-    fn scramble<S>(salt: S, password: S) -> Vec<u8>
-        where S: Into<Cow<'a, str>>
-    {
-        let decoded_salt = &decode_base64(&salt.into()).unwrap()[..];
-        let mut step_1 = Sha1::new();
-        step_1.update(&(password.into()[..]).as_bytes());
-        let mut step_2 = Sha1::new();
-        step_2.update(&step_1.digest().bytes());
-        let mut step_3 = Sha1::new();
-        step_3.update(&[&decoded_salt[..20], &step_2.digest().bytes()].concat());
-        let digest_1 = step_1.digest().bytes();
-        let digest_3 = step_3.digest().bytes();
-        (0..20)
-            .into_iter()
-            .map(|n| digest_1[n] ^ digest_3[n])
-            .collect::<Vec<u8>>()
-    }
-
-    fn build_auth_body<S>(username: S, scramble: &[u8]) -> Vec<u8>
-        where S: Into<Cow<'a, str>>
-    {
-        let mut encoded_username = Vec::new();
-        write_str(&mut encoded_username, &username.into());
-        [&[0x82][..],
-         &[Code::UserName as u8][..],
-         &encoded_username[..],
-         &[Code::Tuple as u8, 0x92, 0xA9][..],
-         &"chap-sha1".as_bytes(),
-         &[0xC4, 0x14][..],
-         &scramble[..]]
-            .concat()
-    }
-
-    pub fn replace(&mut self, space: u16, keys: Vec<Value>) -> Result<Value, String> {
-        let mut keys_buffer = Vec::new();
-        let wrapped_keys = Value::Array(keys);
-        wrapped_keys.serialize(&mut Serializer::new(&mut keys_buffer)).unwrap();
-        if keys_buffer.len() == 1 {
-            keys_buffer = [&[0x91][..], &keys_buffer[..]].concat();
-        }
-        let request_id = self.get_id();
-        let header = header(RequestTypeKey::Replace, request_id);
-        let mut body = [&[0x82][..],
-                        &[Code::SpaceId as u8][..],
-                        &[0xCD, 0x0, 0x0][..],
-                        &[Code::Tuple as u8][..],
-                        &keys_buffer[..]]
-            .concat();
-        BigEndian::write_u16(&mut body[3..5], space);
-        let response = request(&header, &body);
-        process_response(&response)
-    }
-
-    pub fn update_integer<I>(&mut self,
-                             space: u16,
-                             index: u8,
-                             keys: I,
-                             operation_type: IntegerOperation,
-                             field_number: u8,
-                             argument: u32)
-                             -> Result<Value, String>
-        where I: Serialize
-    {
-        let keys_buffer = serialize_keys(keys);
-        let request_id = self.get_id();
-        let header = header(RequestTypeKey::Update, request_id);
-        let wrapped_argument = Value::from(argument);
-        let mut serialized_argument = Vec::new();
-        wrapped_argument.serialize(&mut Serializer::new(&mut serialized_argument)).unwrap();
-        let mut body = [&[0x84][..],
-                        &[Code::SpaceId as u8][..],
-                        &[0xCD, 0x0, 0x0][..],
-                        &[Code::IndexId as u8][..],
-                        &[index][..],
-                        &[Code::Key as u8][..],
-                        &keys_buffer[..],
-                        &[Code::Tuple as u8][..],
-                        &[0x91, 0x93, FIX_STR_PREFIX, operation_type as u8, field_number][..],
-                        &serialized_argument[..]]
-            .concat();
-        BigEndian::write_u16(&mut body[3..5], space);
-        let response = request(&header, &body);
-        process_response(&response)
-    }
-
-    pub fn update_string<I, S>(&mut self,
-                               space: u16,
-                               index: u8,
-                               keys: I,
-                               field_number: u8,
-                               position: u8,
-                               offset: u8,
-                               argument: S)
-                               -> Result<Value, String>
-        where I: Serialize,
-              S: Into<Cow<'a, str>> + Serialize
-    {
-        let keys_buffer = serialize_keys(keys);
-        let request_id = self.get_id();
-        let header = header(RequestTypeKey::Update, request_id);
-        let wrapped_argument = Value::String(argument.into().into_owned());
-        let mut serialized_argument = Vec::new();
-        wrapped_argument.serialize(&mut Serializer::new(&mut serialized_argument)).unwrap();
-        let mut body = [&[0x84][..],
-                        &[Code::SpaceId as u8][..],
-                        &[0xCD, 0x0, 0x0][..],
-                        &[Code::IndexId as u8][..],
-                        &[index][..],
-                        &[Code::Key as u8][..],
-                        &keys_buffer[..],
-                        &[Code::Tuple as u8][..],
-                        &[0x91,
-                          0x95,
-                          FIX_STR_PREFIX,
-                          StringOperation::Splice as u8,
-                          field_number,
-                          position,
-                          offset][..],
-                        &serialized_argument[..]]
-            .concat();
-        BigEndian::write_u16(&mut body[3..5], space);
-        let response = request(&header, &body);
-        process_response(&response)
-    }
-
-    pub fn update_common<I>(&mut self,
-                            space: u16,
-                            index: u8,
-                            keys: I,
-                            operation_type: CommonOperation,
-                            field_number: u8,
-                            argument: Value)
-                            -> Result<Value, String>
-        where I: Serialize
-    {
-        let keys_buffer = serialize_keys(keys);
-        let request_id = self.get_id();
-        let header = header(RequestTypeKey::Update, request_id);
-        let wrapped_argument = argument;
-        let mut serialized_argument = Vec::new();
-        wrapped_argument.serialize(&mut Serializer::new(&mut serialized_argument)).unwrap();
-        let mut body = [&[0x84][..],
-                        &[Code::SpaceId as u8][..],
-                        &[0xCD, 0x0, 0x0][..],
-                        &[Code::IndexId as u8][..],
-                        &[index][..],
-                        &[Code::Key as u8][..],
-                        &keys_buffer[..],
-                        &[Code::Tuple as u8][..],
-                        &[0x91, 0x93, FIX_STR_PREFIX, operation_type as u8, field_number][..],
-                        &serialized_argument[..]]
-            .concat();
-        BigEndian::write_u16(&mut body[3..5], space);
-        let response = request(&header, &body);
-        process_response(&response)
-    }
-
-    pub fn delete(&mut self, space: u16, index: u8, keys: Vec<Value>) -> Result<Value, String> {
-        let wrapped_keys = Value::Array(keys);
-        let keys_buffer = serialize_keys(wrapped_keys);
-        let request_id = self.get_id();
-        let header = header(RequestTypeKey::Delete, request_id);
-        let mut body = [&[0x83][..],
-                        &[Code::SpaceId as u8][..],
-                        &[0xCD, 0x0, 0x0][..],
-                        &[Code::IndexId as u8][..],
-                        &[index][..],
-                        &[Code::Key as u8][..],
-                        &keys_buffer[..]]
-            .concat();
-        BigEndian::write_u16(&mut body[3..5], space);
-        let response = request(&header, &body);
-        process_response(&response)
-    }
-
-    pub fn call_16(&mut self,
-                   function_name: &'static str,
-                   keys: Vec<Value>)
-                   -> Result<Value, String> {
-        let wrapped_keys = Value::Array(keys);
-        let keys_buffer = serialize_keys(wrapped_keys);
-        let function_name = serialize_keys(Value::String(function_name.into()));
-        let request_id = self.get_id();
-        let header = header(RequestTypeKey::Call16, request_id);
-        let mut body = [&[0x82][..],
-                        &[Code::FunctionName as u8][..],
-                        &function_name[..],
-                        &[Code::Tuple as u8][..],
-                        &keys_buffer[..]]
-            .concat();
-        let response = request(&header, &body);
-        process_response(&response)
-    }
-
-    pub fn call(&mut self, function_name: &'static str, keys: Vec<Value>) -> Result<Value, String> {
-        let wrapped_keys = Value::Array(keys);
-        let keys_buffer = serialize_keys(wrapped_keys);
-        let function_name = serialize_keys(Value::String(function_name.into()));
-        let request_id = self.get_id();
-        let header = header(RequestTypeKey::Call, request_id);
-        let mut body = [&[0x82][..],
-                        &[Code::FunctionName as u8][..],
-                        &function_name[..],
-                        &[Code::Tuple as u8][..],
-                        &keys_buffer[..]]
-            .concat();
-        let response = request(&header, &body);
-        process_response(&response)
-    }
 }
 
 pub fn process_response(response: &Response) -> Result<Value, String> {
@@ -384,6 +164,49 @@ pub fn serialize_keys<I>(keys: I) -> Vec<u8>
         keys_buffer = [&[0x91][..], &keys_buffer[..]].concat();
     }
     keys_buffer
+}
+
+fn read_length<I>(stream: &mut I) -> u32
+    where I: Read
+{
+    let mut packet_length = [0x00, 0x00, 0x00, 0x00, 0x00];
+    stream.read(&mut packet_length);
+    let mut decoder = Decoder::new(&packet_length[..]);
+    let mut length = Decodable::decode(&mut decoder).unwrap();
+    length
+}
+
+fn scramble<S>(salt: S, password: S) -> Vec<u8>
+    where S: Into<Cow<'a, str>>
+{
+    let decoded_salt = &decode_base64(&salt.into()).unwrap()[..];
+    let mut step_1 = Sha1::new();
+    step_1.update(&(password.into()[..]).as_bytes());
+    let mut step_2 = Sha1::new();
+    step_2.update(&step_1.digest().bytes());
+    let mut step_3 = Sha1::new();
+    step_3.update(&[&decoded_salt[..20], &step_2.digest().bytes()].concat());
+    let digest_1 = step_1.digest().bytes();
+    let digest_3 = step_3.digest().bytes();
+    (0..20)
+        .into_iter()
+        .map(|n| digest_1[n] ^ digest_3[n])
+        .collect::<Vec<u8>>()
+}
+
+fn build_auth_body<S>(username: S, scramble: &[u8]) -> Vec<u8>
+    where S: Into<Cow<'a, str>>
+{
+    let mut encoded_username = Vec::new();
+    write_str(&mut encoded_username, &username.into());
+    [&[0x82][..],
+        &[Code::UserName as u8][..],
+        &encoded_username[..],
+        &[Code::Tuple as u8, 0x92, 0xA9][..],
+        &"chap-sha1".as_bytes(),
+        &[0xC4, 0x14][..],
+        &scramble[..]]
+        .concat()
 }
 
 #[cfg(test)]
