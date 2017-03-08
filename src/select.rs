@@ -4,7 +4,10 @@ use tarantool::{header, request, serialize_keys, process_response};
 use byteorder::BigEndian;
 use request_type_key::RequestTypeKey;
 use code::Code;
+use byteorder::ByteOrder;
 use serde::Serialize;
+use std::net::TcpStream;
+use std::sync::Arc;
 
 #[derive(Debug, Builder)]
 pub struct Select<'a> {
@@ -15,12 +18,13 @@ pub struct Select<'a> {
     offset: u8,
     iterator: &'a IteratorType,
     keys: &'a Vec<Value>,
+    descriptor: Arc<TcpStream>,
 }
 
 impl<'a> Select<'a> {
-    pub fn perform<I>(&self)
+
+    pub fn perform(&self)
                      -> Result<Value, String>
-        where I: Serialize
     {
         let keys_buffer = serialize_keys(self.keys);
         let header = header(RequestTypeKey::Select, self.id);
@@ -34,12 +38,12 @@ impl<'a> Select<'a> {
             &[Code::Offset as u8][..],
             &[self.offset][..],
             &[Code::Iterator as u8][..],
-            &[self.iterator as u8][..],
+            &[*self.iterator as u8][..],
             &[Code::Key as u8][..],
             &keys_buffer[..]]
             .concat();
         BigEndian::write_u16(&mut body[3..5], self.space);
-        let response = request(&header, &body);
+        let response = request(&header, &body, &mut self.descriptor.clone().as_ref());
         process_response(&response)
     }
 }

@@ -12,14 +12,10 @@ rmpv = { version = "0.2.0", features = ["with-serde"] }
 base64 = "0.2.1"
 sha1 = "0.2.0"
 log = "0.3.6"
-futures = "0.1.7"
-tokio-core = "0.1.1"
-tokio-proto = "0.1.0"
 rmp-serialize = "0.8.0"
 rustc-serialize = "0.3.22"
 byteorder = "0.5.3"
 hex-slice = "0.1.0"
-tokio-service = "0.1.0"
 derive_builder = "0.3.0"
 
 

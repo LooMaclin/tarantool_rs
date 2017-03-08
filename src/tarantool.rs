@@ -59,12 +59,12 @@ impl<'a> Tarantool<'a> {
             request_id: 0,
             socket: stream,
         };
-        let scramble = Tarantool::scramble(&*tarantool.greeting_packet.salt, &*tarantool.password);
+        let scramble = scramble(&*tarantool.greeting_packet.salt, &*tarantool.password);
         let id = tarantool.get_id();
         let header = header(RequestTypeKey::Auth, id);
         let mut chap_sha1_encoded = Vec::new();
         "chap-sha1".encode(&mut Encoder::new(&mut &mut chap_sha1_encoded[..]));
-        let body = Tarantool::build_auth_body(tarantool.user.clone(), &scramble);
+        let body = build_auth_body(tarantool.user.clone(), &scramble);
         match request(&header, &body, &mut tarantool.socket).body {
             Some(data) => Err(String::from_utf8(data).unwrap()),
             None => Ok(tarantool),
@@ -99,9 +99,9 @@ pub fn process_response(response: &Response) -> Result<Value, String> {
     }
 }
 
-pub fn read_payload<I>(length: u32, descriptor: &mut I) -> [u8; 8192]
+pub fn read_payload<I>(length: u32, descriptor: &mut I) -> Vec<u8>
     where I: Read {
-    let mut payload = [0u8; 8192];
+    let mut payload = Vec::new();
     descriptor.read(&mut payload);
     payload
 }
@@ -117,7 +117,7 @@ pub fn header(command: RequestTypeKey, request_id: u32) -> Vec<u8> {
     encoded_header
 }
 
-pub fn request<I>(header: &[u8], body: &[u8], descriptor: &mut I) -> Response
+pub fn request<I>(header: &[u8], body: &[u8], mut descriptor: &mut I) -> Response
     where I: Write + Read {
     let mut encoded_request_length = [0x00, 0x00, 0x00, 0x00, 0x00];
     write_u32(&mut &mut encoded_request_length[..],
@@ -126,8 +126,8 @@ pub fn request<I>(header: &[u8], body: &[u8], descriptor: &mut I) -> Response
         .unwrap();
     let request = [&encoded_request_length[..], &header[..], &body[..]].concat();
     descriptor.write(&request);
-    let response_length = Tarantool::read_length(&mut descriptor);
-    let payload = read_payload(response_length, descriptor)[..response_length as usize];
+    let response_length = read_length(&mut descriptor);
+    let payload = read_payload(response_length, descriptor);
     debug!("request(size: {}): {:#X}",
     &request.len(),
     &request.as_hex());
@@ -176,7 +176,7 @@ fn read_length<I>(stream: &mut I) -> u32
     length
 }
 
-fn scramble<S>(salt: S, password: S) -> Vec<u8>
+fn scramble<'a, S>(salt: S, password: S) -> Vec<u8>
     where S: Into<Cow<'a, str>>
 {
     let decoded_salt = &decode_base64(&salt.into()).unwrap()[..];
@@ -194,7 +194,7 @@ fn scramble<S>(salt: S, password: S) -> Vec<u8>
         .collect::<Vec<u8>>()
 }
 
-fn build_auth_body<S>(username: S, scramble: &[u8]) -> Vec<u8>
+fn build_auth_body<'a, S>(username: S, scramble: &[u8]) -> Vec<u8>
     where S: Into<Cow<'a, str>>
 {
     let mut encoded_username = Vec::new();
@@ -217,7 +217,7 @@ mod test {
 
     #[test]
     fn scramble_result() {
-        let scramble = Tarantool::scramble("WPE4wY2+RTBuFvElfHawAheh37sa58XKR/ZEOvgRsa8=", "123");
+        let scramble = scramble("WPE4wY2+RTBuFvElfHawAheh37sa58XKR/ZEOvgRsa8=", "123");
         assert_eq!([0xAC, 0x3F, 0xAD, 0x90, 0x6F, 0xFE, 0x80, 0x28, 0x92, 0x79, 0xCE, 0xC3, 0xFC,
                     0xDA, 0x0B, 0x86, 0xBD, 0x06, 0x2A, 0x69],
                    &scramble[..]);
@@ -226,7 +226,7 @@ mod test {
     #[test]
     fn auth_body_result() {
         let auth_body =
-            Tarantool::build_auth_body("test",
+            build_auth_body("test",
                                        &[0xAC, 0x3F, 0xAD, 0x90, 0x6F, 0xFE, 0x80, 0x28, 0x92,
                                          0x79, 0xCE, 0xC3, 0xFC, 0xDA, 0x0B, 0x86, 0xBD, 0x06,
                                          0x2A, 0x69][..]);
@@ -240,6 +240,6 @@ mod test {
     #[test]
     fn read_length() {
         assert_eq!(5,
-                   Tarantool::read_length(&mut &[0xCE, 0x00, 0x00, 0x00, 0x5][..]));
+                   read_length(&mut &[0xCE, 0x00, 0x00, 0x00, 0x5][..]));
     }
 }
