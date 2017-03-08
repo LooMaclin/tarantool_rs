@@ -7,13 +7,11 @@ use code::Code;
 use byteorder::ByteOrder;
 use serde::Serialize;
 use std::net::TcpStream;
-use std::sync::Arc;
 use std::io::{Read, Write};
 use tarantool::Tarantool;
 
 #[derive(Debug, Builder)]
 pub struct Select<'a> {
-    id: u32,
     space: u16,
     index: u8,
     limit: u8,
@@ -28,7 +26,7 @@ impl<'a> Select<'a> {
                      -> Result<Value, String>
     {
         let keys_buffer = serialize_keys(self.keys);
-        let header = header(RequestTypeKey::Select, self.id);
+        let header = header(RequestTypeKey::Select, state.get_id());
         let mut body = [&[0x86][..],
             &[Code::SpaceId as u8][..],
             &[0xCD, 0x0, 0x0][..],

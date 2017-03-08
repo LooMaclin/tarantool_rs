@@ -32,7 +32,6 @@ use operation::FIX_STR_PREFIX;
 use response::Response;
 use header::Header;
 use select::{Select, SelectBuilder};
-use std::sync::Arc;
 
 #[derive(Debug)]
 pub struct Tarantool<'a> {
@@ -60,6 +59,7 @@ impl<'a> Tarantool<'a> {
             request_id: 0,
             descriptor: stream,
         };
+        println!("Tarantool: {:?}", tarantool);
         let scramble = scramble(&*tarantool.greeting_packet.salt, &*tarantool.password);
         let id = tarantool.get_id();
         let header = header(RequestTypeKey::Auth, id);
