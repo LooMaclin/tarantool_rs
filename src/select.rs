@@ -8,6 +8,8 @@ use byteorder::ByteOrder;
 use serde::Serialize;
 use std::net::TcpStream;
 use std::sync::Arc;
+use std::io::{Read, Write};
+use tarantool::Tarantool;
 
 #[derive(Debug, Builder)]
 pub struct Select<'a> {
@@ -16,14 +18,13 @@ pub struct Select<'a> {
     index: u8,
     limit: u8,
     offset: u8,
-    iterator: &'a IteratorType,
-    keys: &'a Vec<Value>,
-    descriptor: Arc<TcpStream>,
+    iterator: IteratorType,
+    keys: &'a Vec<Value>
 }
 
 impl<'a> Select<'a> {
 
-    pub fn perform(&self)
+    pub fn perform(&self, mut state: &mut Tarantool)
                      -> Result<Value, String>
     {
         let keys_buffer = serialize_keys(self.keys);
@@ -38,12 +39,12 @@ impl<'a> Select<'a> {
             &[Code::Offset as u8][..],
             &[self.offset][..],
             &[Code::Iterator as u8][..],
-            &[*self.iterator as u8][..],
+            &[self.iterator as u8][..],
             &[Code::Key as u8][..],
             &keys_buffer[..]]
             .concat();
         BigEndian::write_u16(&mut body[3..5], self.space);
-        let response = request(&header, &body, &mut self.descriptor.clone().as_ref());
+        let response = request(&header, &body, &mut state.descriptor);
         process_response(&response)
     }
 }

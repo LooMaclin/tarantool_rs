@@ -28,6 +28,6 @@ pub mod request_type_key;
 pub mod iterator_type;
 pub mod header;
 pub mod response;
-mod select;
+pub mod select;
 
 pub use rmpv::Value;

@@ -31,7 +31,8 @@ use operation::UpsertOperation;
 use operation::FIX_STR_PREFIX;
 use response::Response;
 use header::Header;
-use select::Select;
+use select::{Select, SelectBuilder};
+use std::sync::Arc;
 
 #[derive(Debug)]
 pub struct Tarantool<'a> {
@@ -40,7 +41,7 @@ pub struct Tarantool<'a> {
     password: Cow<'a, str>,
     greeting_packet: GreetingPacket<'a>,
     request_id: u32,
-    socket: TcpStream,
+    pub descriptor: TcpStream,
 }
 
 impl<'a> Tarantool<'a> {
@@ -57,7 +58,7 @@ impl<'a> Tarantool<'a> {
             greeting_packet: GreetingPacket::new(String::from_utf8(buf[64..108].to_vec()).unwrap(),
                                                  String::from_utf8(buf[..64].to_vec()).unwrap()),
             request_id: 0,
-            socket: stream,
+            descriptor: stream,
         };
         let scramble = scramble(&*tarantool.greeting_packet.salt, &*tarantool.password);
         let id = tarantool.get_id();
@@ -65,7 +66,7 @@ impl<'a> Tarantool<'a> {
         let mut chap_sha1_encoded = Vec::new();
         "chap-sha1".encode(&mut Encoder::new(&mut &mut chap_sha1_encoded[..]));
         let body = build_auth_body(tarantool.user.clone(), &scramble);
-        match request(&header, &body, &mut tarantool.socket).body {
+        match request(&header, &body, &mut tarantool.descriptor).body {
             Some(data) => Err(String::from_utf8(data).unwrap()),
             None => Ok(tarantool),
         }
@@ -75,6 +76,10 @@ impl<'a> Tarantool<'a> {
         self.request_id += 1;
         self.request_id
     }
+}
+
+pub fn select<'a>() -> SelectBuilder<'a> {
+    SelectBuilder::default()
 }
 
 pub fn process_response(response: &Response) -> Result<Value, String> {
@@ -128,18 +133,18 @@ pub fn request<I>(header: &[u8], body: &[u8], mut descriptor: &mut I) -> Respons
     descriptor.write(&request);
     let response_length = read_length(&mut descriptor);
     let payload = read_payload(response_length, descriptor);
-    debug!("request(size: {}): {:#X}",
+    println!("request(size: {}): {:#X}",
     &request.len(),
     &request.as_hex());
-    debug!("length(size: {}): {:#X}",
+    println!("length(size: {}): {:#X}",
     &encoded_request_length.len(),
     &encoded_request_length.as_hex());
-    debug!("header(size: {}): {:#X}", &header.len(), &header.as_hex());
-    debug!("body(size: {}): {:#X}", &body.len(), &body.as_hex());
-    debug!("payload(size: {}): {:#X}",
+    println!("header(size: {}): {:#X}", &header.len(), &header.as_hex());
+    println!("body(size: {}): {:#X}", &body.len(), &body.as_hex());
+    println!("payload(size: {}): {:#X}",
     &payload.len(),
     &payload.as_hex());
-    debug!("payload(as text): {}", String::from_utf8_lossy(&payload));
+    println!("payload(as text): {}", String::from_utf8_lossy(&payload));
     let header = Header {
         code: BigEndian::read_u32(&payload[3..8]),
         sync: BigEndian::read_u64(&payload[9..17]),
