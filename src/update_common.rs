@@ -26,10 +26,10 @@ impl<'a> UpdateCommon<'a> {
                       -> Result<Value, String>
         where I: Serialize
     {
-        let keys_buffer = serialize_keys(self.keys);
+        let keys_buffer = serialize_keys(self.keys.clone());
         let request_id = state.get_id();
         let header = header(RequestTypeKey::Update, request_id);
-        let mut serialized_argument = serialize_keys(self.argument);
+        let mut serialized_argument = serialize_keys(self.argument.clone());
         let mut body = [&[0x84][..],
             &[Code::SpaceId as u8][..],
             &[0xCD, 0x0, 0x0][..],

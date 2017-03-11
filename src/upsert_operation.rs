@@ -1,4 +1,4 @@
-#[derive(Clone,Debug)]
+#[derive(Clone,Debug, Copy)]
 pub enum UpsertOperation {
     Add = 0x2B,
     Subtract = 0x2D,

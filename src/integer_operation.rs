@@ -1,4 +1,4 @@
-#[derive(Clone,Debug)]
+#[derive(Clone,Debug, Copy)]
 pub enum IntegerOperation {
     Addition = 0x2B,
     Subtraction = 0x2D,

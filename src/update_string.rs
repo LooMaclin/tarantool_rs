@@ -27,10 +27,10 @@ impl<'a> UpdateString<'a> {
                       -> Result<Value, String>
         where I: Serialize
     {
-        let keys_buffer = serialize_keys(self.keys);
+        let keys_buffer = serialize_keys(self.keys.clone());
         let request_id = state.get_id();
         let header = header(RequestTypeKey::Update, request_id);
-        let wrapped_argument = Value::String(self.argument.into().into_owned());
+        let wrapped_argument = Value::String(self.argument.clone().into());
         let mut serialized_argument = serialize_keys(wrapped_argument);
         let mut body = [&[0x84][..],
             &[Code::SpaceId as u8][..],

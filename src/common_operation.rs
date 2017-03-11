@@ -1,4 +1,4 @@
-#[derive(Clone,Debug)]
+#[derive(Clone,Debug, Copy)]
 pub enum CommonOperation {
     Delete = 0x23,
     Insert = 0x21,
