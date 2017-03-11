@@ -1,9 +1,6 @@
 extern crate tarantool;
 
-use tarantool::tarantool::Tarantool;
-use tarantool::iterator_type::IteratorType;
-use tarantool::tarantool::{select};
-use tarantool::Value;
+use tarantool::{Value, Tarantool, IteratorType, select};
 
 fn main() {
     let error_handler = |err| panic!("Tarantool error: {}", err);

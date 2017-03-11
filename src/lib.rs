@@ -31,3 +31,6 @@ pub mod response;
 pub mod select;
 
 pub use rmpv::Value;
+pub use tarantool::Tarantool;
+pub use tarantool::select;
+pub use iterator_type::IteratorType;
