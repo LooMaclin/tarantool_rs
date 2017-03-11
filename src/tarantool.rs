@@ -59,7 +59,7 @@ impl<'a> Tarantool<'a> {
             request_id: 0,
             descriptor: stream,
         };
-        println!("Tarantool: {:?}", tarantool);
+        debug!("Tarantool: {:?}", tarantool);
         let scramble = scramble(&*tarantool.greeting_packet.salt, &*tarantool.password);
         let id = tarantool.get_id();
         let header = header(RequestTypeKey::Auth, id);
@@ -106,8 +106,10 @@ pub fn process_response(response: &Response) -> Result<Value, String> {
 
 pub fn read_payload<I>(length: u32, descriptor: &mut I) -> Vec<u8>
     where I: Read {
-    let mut payload = Vec::new();
+    let mut payload = vec![0u8; length as usize];
+    debug!("PAYLOAD BEFORE: {:?}", payload);
     descriptor.read(&mut payload);
+    debug!("PAYLOAD AFTER: {:?}", payload);
     payload
 }
 
@@ -130,21 +132,24 @@ pub fn request<I>(header: &[u8], body: &[u8], mut descriptor: &mut I) -> Respons
         .ok()
         .unwrap();
     let request = [&encoded_request_length[..], &header[..], &body[..]].concat();
-    descriptor.write(&request);
+    let write_result = descriptor.write(&request);
+    debug!("WRITE RESULT: {:?}", write_result);
     let response_length = read_length(&mut descriptor);
-    let payload = read_payload(response_length, descriptor);
-    println!("request(size: {}): {:#X}",
+    debug!("RESPONSE LENGTH: {:?}", response_length);
+    let payload = read_payload(response_length, &mut descriptor);
+    debug!("PAYLOAD: {:?}", payload);
+    debug!("request(size: {}): {:#X}",
     &request.len(),
     &request.as_hex());
-    println!("length(size: {}): {:#X}",
+    debug!("length(size: {}): {:#X}",
     &encoded_request_length.len(),
     &encoded_request_length.as_hex());
-    println!("header(size: {}): {:#X}", &header.len(), &header.as_hex());
-    println!("body(size: {}): {:#X}", &body.len(), &body.as_hex());
-    println!("payload(size: {}): {:#X}",
+    debug!("header(size: {}): {:#X}", &header.len(), &header.as_hex());
+    debug!("body(size: {}): {:#X}", &body.len(), &body.as_hex());
+    debug!("payload(size: {}): {:#X}",
     &payload.len(),
     &payload.as_hex());
-    println!("payload(as text): {}", String::from_utf8_lossy(&payload));
+    debug!("payload(as text): {}", String::from_utf8_lossy(&payload));
     let header = Header {
         code: BigEndian::read_u32(&payload[3..8]),
         sync: BigEndian::read_u64(&payload[9..17]),
@@ -217,11 +222,11 @@ fn build_auth_body<'a, S>(username: S, scramble: &[u8]) -> Vec<u8>
 #[cfg(test)]
 mod test {
 
-    use super::Tarantool;
+    use super::{scramble, build_auth_body, read_length};
     use hex_slice::AsHex;
 
     #[test]
-    fn scramble_result() {
+    fn scramble_test() {
         let scramble = scramble("WPE4wY2+RTBuFvElfHawAheh37sa58XKR/ZEOvgRsa8=", "123");
         assert_eq!([0xAC, 0x3F, 0xAD, 0x90, 0x6F, 0xFE, 0x80, 0x28, 0x92, 0x79, 0xCE, 0xC3, 0xFC,
                     0xDA, 0x0B, 0x86, 0xBD, 0x06, 0x2A, 0x69],
@@ -229,7 +234,7 @@ mod test {
     }
 
     #[test]
-    fn auth_body_result() {
+    fn build_auth_body_test() {
         let auth_body =
             build_auth_body("test",
                                        &[0xAC, 0x3F, 0xAD, 0x90, 0x6F, 0xFE, 0x80, 0x28, 0x92,
@@ -243,7 +248,7 @@ mod test {
     }
 
     #[test]
-    fn read_length() {
+    fn read_length_test() {
         assert_eq!(5,
                    read_length(&mut &[0xCE, 0x00, 0x00, 0x00, 0x5][..]));
     }

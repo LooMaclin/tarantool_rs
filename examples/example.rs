@@ -10,7 +10,6 @@ fn main() {
     let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
         panic!("err: {}", err);
     });
-    println!("TEST ==============");
     let tuples = select()
             .space(512 as u16)
             .index(0)
