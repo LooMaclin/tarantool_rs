@@ -20,7 +20,7 @@ fn main() {
             .build()
             .unwrap()
             .perform(&mut tarantool_instance)
-            .unwrap_or_else(error_handler);
+            .unwrap_or_else(&error_handler);
     for (index, tuple) in tuples.as_array().unwrap().iter().enumerate() {
         let tuple = tuple.as_array().unwrap();
         println!("{}: {:?}", index, tuple);
