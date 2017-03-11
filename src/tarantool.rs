@@ -32,6 +32,7 @@ use operation::FIX_STR_PREFIX;
 use response::Response;
 use header::Header;
 use select::{Select, SelectBuilder};
+use insert::{Insert, InsertBuilder};
 
 #[derive(Debug)]
 pub struct Tarantool<'a> {
@@ -80,6 +81,10 @@ impl<'a> Tarantool<'a> {
 
 pub fn select<'a>() -> SelectBuilder<'a> {
     SelectBuilder::default()
+}
+
+pub fn insert<'a>() -> InsertBuilder<'a> {
+    InsertBuilder::default()
 }
 
 pub fn process_response(response: &Response) -> Result<Value, String> {
@@ -170,9 +175,6 @@ pub fn serialize_keys<I>(keys: I) -> Vec<u8>
 {
     let mut keys_buffer = Vec::new();
     keys.serialize(&mut Serializer::new(&mut keys_buffer));
-    if keys_buffer.len() == 1 {
-        keys_buffer = [&[0x91][..], &keys_buffer[..]].concat();
-    }
     keys_buffer
 }
 

@@ -29,8 +29,9 @@ pub mod iterator_type;
 pub mod header;
 pub mod response;
 pub mod select;
+pub mod insert;
 
 pub use rmpv::Value;
 pub use tarantool::Tarantool;
-pub use tarantool::select;
+pub use tarantool::{select, insert};
 pub use iterator_type::IteratorType;
