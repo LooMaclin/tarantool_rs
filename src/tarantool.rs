@@ -33,6 +33,15 @@ use response::Response;
 use header::Header;
 use select::{Select, SelectBuilder};
 use insert::{Insert, InsertBuilder};
+use upsert::{Upsert, UpsertBuilder};
+use update_integer::{UpdateInteger, UpdateIntegerBuilder};
+use update_string::{UpdateString, UpdateStringBuilder};
+use update_common::{UpdateCommon, UpdateCommonBuilder};
+use delete::{Delete,DeleteBuilder};
+use call_16::{Call16,Call16Builder};
+use call::{Call, CallBuilder};
+use replace::{Replace, ReplaceBuilder};
+use eval::{Eval, EvalBuilder};
 
 #[derive(Debug)]
 pub struct Tarantool<'a> {
@@ -86,6 +95,43 @@ pub fn select<'a>() -> SelectBuilder<'a> {
 pub fn insert<'a>() -> InsertBuilder<'a> {
     InsertBuilder::default()
 }
+
+pub fn upsert<'a>() -> UpsertBuilder<'a> {
+    UpsertBuilder::default()
+}
+
+pub fn update_integer<'a>() -> UpdateIntegerBuilder<'a> {
+    UpdateIntegerBuilder::default()
+}
+
+pub fn update_common<'a>() -> UpdateCommonBuilder<'a> {
+    UpdateCommonBuilder::default()
+}
+
+pub fn update_string<'a>() -> UpdateStringBuilder<'a> {
+    UpdateStringBuilder::default()
+}
+
+pub fn eval<'a>() -> EvalBuilder<'a> {
+    EvalBuilder::default()
+}
+
+pub fn replace<'a>() -> ReplaceBuilder<'a> {
+    ReplaceBuilder::default()
+}
+
+pub fn call<'a>() -> CallBuilder<'a> {
+    CallBuilder::default()
+}
+
+pub fn call_16<'a>() -> Call16Builder<'a> {
+    Call16Builder::default()
+}
+
+pub fn delete<'a>() -> DeleteBuilder<'a> {
+    DeleteBuilder::default()
+}
+
 
 pub fn process_response(response: &Response) -> Result<Value, String> {
     let data = response.body.as_ref().ok_or("Body is empty.")?;
