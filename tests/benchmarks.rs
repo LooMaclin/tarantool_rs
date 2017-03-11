@@ -17,8 +17,7 @@ fn select_bench(b: &mut Bencher) {
         panic!("err: {}", err);
     });
     b.iter(|| {
-        let error_handler = |err| panic!("Tarantool error: {}", err);
-        let tuples = select()
+        select()
             .space(512 as u16)
             .index(0)
             .limit(10)
@@ -28,6 +27,6 @@ fn select_bench(b: &mut Bencher) {
             .build()
             .unwrap()
             .perform(&mut tarantool_instance)
-            .unwrap_or_else(error_handler);
+            .unwrap_or_else(|err| panic!("Tarantool error: {}", err));
     });
 }
