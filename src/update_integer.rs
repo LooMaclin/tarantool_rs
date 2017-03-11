@@ -12,7 +12,6 @@ use byteorder::ByteOrder;
 
 #[derive(Debug, Builder)]
 pub struct UpdateInteger<'a> {
-    id: u32,
     space: u16,
     index: u8,
     operation_type: IntegerOperation,

@@ -9,7 +9,6 @@ use tarantool::Tarantool;
 
 #[derive(Debug, Builder)]
 pub struct Eval<'a> {
-    id: u32,
     expression: &'a str,
     keys: &'a Vec<Value>,
 }
