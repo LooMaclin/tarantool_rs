@@ -5,6 +5,7 @@ use byteorder::BigEndian;
 use request_type_key::RequestTypeKey;
 use code::Code;
 use serde::Serialize;
+use tarantool::Tarantool;
 
 #[derive(Debug, Builder)]
 pub struct Eval<'a> {
@@ -14,14 +15,14 @@ pub struct Eval<'a> {
 }
 
 impl<'a> Eval<'a> {
-    pub fn perform<I>(&self)
+    pub fn perform<I>(&self, state: &mut Tarantool)
                       -> Result<Value, String>
         where I: Serialize
     {
-        let wrapped_keys = Value::Array(keys);
+        let wrapped_keys = Value::Array(self.keys);
         let keys_buffer = serialize_keys(wrapped_keys);
-        let function_name = serialize_keys(Value::String(expression.into()));
-        let request_id = self.get_id();
+        let function_name = serialize_keys(Value::String(self.expression.into()));
+        let request_id = state.get_id();
         let header = header(RequestTypeKey::Eval, request_id);
         let mut body = [&[0x82][..],
             &[Code::EXPR as u8][..],
@@ -29,7 +30,7 @@ impl<'a> Eval<'a> {
             &[Code::Tuple as u8][..],
             &keys_buffer[..]]
             .concat();
-        let response = request(&header, &body);
+        let response = request(&header, &body, &mut state.descriptor);
         process_response(&response)
     }
 }
