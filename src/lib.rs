@@ -30,6 +30,15 @@ pub mod header;
 pub mod response;
 pub mod select;
 pub mod insert;
+pub mod upsert;
+pub mod update_integer;
+pub mod update_common;
+pub mod update_string;
+pub mod eval;
+pub mod call;
+pub mod call_16;
+pub mod delete;
+pub mod replace;
 
 pub use rmpv::Value;
 pub use tarantool::Tarantool;
