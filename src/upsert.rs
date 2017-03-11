@@ -8,6 +8,7 @@ use serde::Serialize;
 use upsert_operation::UpsertOperation;
 use tarantool::Tarantool;
 use FIX_STR_PREFIX;
+use byteorder::ByteOrder;
 
 #[derive(Debug, Builder)]
 pub struct Upsert<'a> {

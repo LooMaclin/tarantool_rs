@@ -6,6 +6,7 @@ use request_type_key::RequestTypeKey;
 use code::Code;
 use serde::Serialize;
 use tarantool::Tarantool;
+use byteorder::ByteOrder;
 
 #[derive(Debug, Builder)]
 pub struct Delete<'a> {

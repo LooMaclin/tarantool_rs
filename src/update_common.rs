@@ -8,6 +8,7 @@ use serde::Serialize;
 use common_operation::CommonOperation;
 use FIX_STR_PREFIX;
 use std::borrow::Cow;
+use byteorder::ByteOrder;
 use tarantool::Tarantool;
 
 #[derive(Debug, Builder)]

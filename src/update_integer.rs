@@ -8,6 +8,7 @@ use serde::Serialize;
 use integer_operation::IntegerOperation;
 use FIX_STR_PREFIX;
 use tarantool::Tarantool;
+use byteorder::ByteOrder;
 
 #[derive(Debug, Builder)]
 pub struct UpdateInteger<'a> {

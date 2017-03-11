@@ -9,6 +9,7 @@ use tarantool::Tarantool;
 use FIX_STR_PREFIX;
 use string_operation::StringOperation;
 use std::borrow::Cow;
+use byteorder::ByteOrder;
 
 #[derive(Debug, Builder)]
 pub struct UpdateString<'a> {
