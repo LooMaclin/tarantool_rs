@@ -20,7 +20,7 @@ impl<'a> Replace<'a> {
         where I: Serialize
     {
         let mut keys_buffer = Vec::new();
-        let wrapped_keys = serialize_keys(Value::Array(self.keys));
+        let wrapped_keys = serialize_keys(Value::Array(self.keys.clone()));
         let request_id = state.get_id();
         let header = header(RequestTypeKey::Replace, request_id);
         let mut body = [&[0x82][..],

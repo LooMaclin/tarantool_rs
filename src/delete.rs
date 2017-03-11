@@ -20,7 +20,7 @@ impl<'a> Delete<'a> {
                       -> Result<Value, String>
         where I: Serialize
     {
-        let wrapped_keys = Value::Array(self.keys);
+        let wrapped_keys = Value::Array(self.keys.clone());
         let keys_buffer = serialize_keys(wrapped_keys);
         let request_id = state.get_id();
         let header = header(RequestTypeKey::Delete, request_id);

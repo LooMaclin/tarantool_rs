@@ -18,7 +18,7 @@ impl<'a> Call<'a> {
                       -> Result<Value, String>
         where I: Serialize
     {
-        let wrapped_keys = Value::Array(self.keys);
+        let wrapped_keys = Value::Array(self.keys.clone());
         let keys_buffer = serialize_keys(wrapped_keys);
         let function_name = serialize_keys(Value::String(self.function_name.into()));
         let request_id = state.get_id();
