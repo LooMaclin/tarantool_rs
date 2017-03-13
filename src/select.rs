@@ -10,14 +10,14 @@ use std::net::TcpStream;
 use std::io::{Read, Write};
 use tarantool::Tarantool;
 
-#[derive(Debug, Builder)]
+#[derive(Debug)]
 pub struct Select<'a> {
-    space: u16,
-    index: u8,
-    limit: u8,
-    offset: u8,
-    iterator: IteratorType,
-    keys: &'a Vec<Value>
+    pub space: u16,
+    pub index: u8,
+    pub limit: u8,
+    pub offset: u8,
+    pub iterator: IteratorType,
+    pub keys: &'a Vec<Value>
 }
 
 impl<'a> Select<'a> {

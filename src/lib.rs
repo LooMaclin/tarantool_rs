@@ -45,7 +45,8 @@ pub mod replace;
 
 pub use rmpv::Value;
 pub use tarantool::Tarantool;
-pub use tarantool::{select, insert};
+pub use select::{Select};
+pub use tarantool::{insert};
 pub use iterator_type::IteratorType;
 
 pub const FIX_STR_PREFIX: u8 = 0xA1;

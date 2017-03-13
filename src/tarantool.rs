@@ -26,7 +26,7 @@ use rmpv::ValueRef;
 use rmpv::decode::value_ref::read_value_ref;
 use response::Response;
 use header::Header;
-use select::{Select, SelectBuilder};
+use select::{Select};
 use insert::{Insert, InsertBuilder};
 use upsert::{Upsert, UpsertBuilder};
 use update_integer::{UpdateInteger, UpdateIntegerBuilder};
@@ -81,10 +81,6 @@ impl<'a> Tarantool<'a> {
         self.request_id += 1;
         self.request_id
     }
-}
-
-pub fn select<'a>() -> SelectBuilder<'a> {
-    SelectBuilder::default()
 }
 
 pub fn insert<'a>() -> InsertBuilder<'a> {
