@@ -18,31 +18,27 @@ pub struct Select<'a> {
     pub limit: u8,
     pub offset: u8,
     pub iterator: IteratorType,
-    pub keys: &'a Vec<Value>
+    pub keys: &'a Vec<Value>,
 }
 
 impl<'a> Action for Select<'a> {
-
-    fn get(&self)
-                     -> (RequestTypeKey, Vec<u8>)
-    {
+    fn get(&self) -> (RequestTypeKey, Vec<u8>) {
         let keys_buffer = serialize_keys(self.keys);
         let mut body = [&[0x86][..],
-            &[Code::SpaceId as u8][..],
-            &[0xCD, 0x0, 0x0][..],
-            &[Code::IndexId as u8][..],
-            &[self.index][..],
-            &[Code::Limit as u8][..],
-            &[self.limit][..],
-            &[Code::Offset as u8][..],
-            &[self.offset][..],
-            &[Code::Iterator as u8][..],
-            &[self.iterator as u8][..],
-            &[Code::Key as u8][..],
-            &keys_buffer[..]]
+                        &[Code::SpaceId as u8][..],
+                        &[0xCD, 0x0, 0x0][..],
+                        &[Code::IndexId as u8][..],
+                        &[self.index][..],
+                        &[Code::Limit as u8][..],
+                        &[self.limit][..],
+                        &[Code::Offset as u8][..],
+                        &[self.offset][..],
+                        &[Code::Iterator as u8][..],
+                        &[self.iterator as u8][..],
+                        &[Code::Key as u8][..],
+                        &keys_buffer[..]]
             .concat();
         BigEndian::write_u16(&mut body[3..5], self.space);
         (RequestTypeKey::Select, body)
     }
 }
-

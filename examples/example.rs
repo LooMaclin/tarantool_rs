@@ -55,7 +55,6 @@ fn main() {
 
     println!("Common-Update result: {:?}", tarantool_instance.request(&update_common).unwrap_or_else(&error_handler));
 
-
     let call = Call {
         function_name: "test",
         keys: &vec![]

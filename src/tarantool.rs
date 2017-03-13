@@ -26,16 +26,16 @@ use rmpv::ValueRef;
 use rmpv::decode::value_ref::read_value_ref;
 use response::Response;
 use header::Header;
-use select::{Select};
-use insert::{Insert};
-use upsert::{Upsert};
-use update_integer::{UpdateInteger};
-use update_string::{UpdateString};
-use update_common::{UpdateCommon};
-use delete::{Delete};
-use call::{Call};
-use replace::{Replace};
-use eval::{Eval};
+use select::Select;
+use insert::Insert;
+use upsert::Upsert;
+use update_integer::UpdateInteger;
+use update_string::UpdateString;
+use update_common::UpdateCommon;
+use delete::Delete;
+use call::Call;
+use replace::Replace;
+use eval::Eval;
 use action::Action;
 
 #[derive(Debug)]
@@ -82,8 +82,9 @@ impl<'a> Tarantool<'a> {
         self.request_id
     }
 
-    pub fn request<I>(&mut self, request_body: & I) -> Result<Value,String>
-        where I: Action {
+    pub fn request<I>(&mut self, request_body: &I) -> Result<Value, String>
+        where I: Action
+    {
         let (request_type, body) = request_body.get();
         let header = header(request_type, self.get_id());
         let response = request(&header, &body, &mut self.descriptor);
@@ -115,7 +116,8 @@ pub fn process_response(response: &Response) -> Result<Value, String> {
 }
 
 pub fn read_payload<I>(length: u32, descriptor: &mut I) -> Vec<u8>
-    where I: Read {
+    where I: Read
+{
     let mut payload = vec![0u8; length as usize];
     debug!("PAYLOAD BEFORE: {:?}", payload);
     descriptor.read(&mut payload);
@@ -125,17 +127,18 @@ pub fn read_payload<I>(length: u32, descriptor: &mut I) -> Vec<u8>
 
 pub fn header(command: RequestTypeKey, request_id: u32) -> Vec<u8> {
     let mut encoded_header = [&[0x82][..],
-        &[Code::RequestType as u8][..],
-        &[command as u8][..],
-        &[Code::Sync as u8][..],
-        &[0, 0, 0, 0, 0]]
+                              &[Code::RequestType as u8][..],
+                              &[command as u8][..],
+                              &[Code::Sync as u8][..],
+                              &[0, 0, 0, 0, 0]]
         .concat();
     write_u32(&mut &mut encoded_header[4..], request_id).ok().unwrap();
     encoded_header
 }
 
 pub fn request<I>(header: &[u8], body: &[u8], mut descriptor: &mut I) -> Response
-    where I: Write + Read {
+    where I: Write + Read
+{
     let mut encoded_request_length = [0x00, 0x00, 0x00, 0x00, 0x00];
     write_u32(&mut &mut encoded_request_length[..],
               (header.len() + body.len()) as u32)
@@ -149,16 +152,16 @@ pub fn request<I>(header: &[u8], body: &[u8], mut descriptor: &mut I) -> Respons
     let payload = read_payload(response_length, &mut descriptor);
     debug!("PAYLOAD: {:?}", payload);
     debug!("request(size: {}): {:#X}",
-    &request.len(),
-    &request.as_hex());
+           &request.len(),
+           &request.as_hex());
     debug!("length(size: {}): {:#X}",
-    &encoded_request_length.len(),
-    &encoded_request_length.as_hex());
+           &encoded_request_length.len(),
+           &encoded_request_length.as_hex());
     debug!("header(size: {}): {:#X}", &header.len(), &header.as_hex());
     debug!("body(size: {}): {:#X}", &body.len(), &body.as_hex());
     debug!("payload(size: {}): {:#X}",
-    &payload.len(),
-    &payload.as_hex());
+           &payload.len(),
+           &payload.as_hex());
     debug!("payload(as text): {}", String::from_utf8_lossy(&payload));
     let header = Header {
         code: BigEndian::read_u32(&payload[3..8]),
@@ -217,12 +220,12 @@ fn build_auth_body<'a, S>(username: S, scramble: &[u8]) -> Vec<u8>
     let mut encoded_username = Vec::new();
     write_str(&mut encoded_username, &username.into());
     [&[0x82][..],
-        &[Code::UserName as u8][..],
-        &encoded_username[..],
-        &[Code::Tuple as u8, 0x92, 0xA9][..],
-        &"chap-sha1".as_bytes(),
-        &[0xC4, 0x14][..],
-        &scramble[..]]
+     &[Code::UserName as u8][..],
+     &encoded_username[..],
+     &[Code::Tuple as u8, 0x92, 0xA9][..],
+     &"chap-sha1".as_bytes(),
+     &[0xC4, 0x14][..],
+     &scramble[..]]
         .concat()
 }
 
@@ -242,11 +245,10 @@ mod test {
 
     #[test]
     fn build_auth_body_test() {
-        let auth_body =
-            build_auth_body("test",
-                                       &[0xAC, 0x3F, 0xAD, 0x90, 0x6F, 0xFE, 0x80, 0x28, 0x92,
-                                         0x79, 0xCE, 0xC3, 0xFC, 0xDA, 0x0B, 0x86, 0xBD, 0x06,
-                                         0x2A, 0x69][..]);
+        let auth_body = build_auth_body("test",
+                                        &[0xAC, 0x3F, 0xAD, 0x90, 0x6F, 0xFE, 0x80, 0x28, 0x92,
+                                          0x79, 0xCE, 0xC3, 0xFC, 0xDA, 0x0B, 0x86, 0xBD, 0x06,
+                                          0x2A, 0x69][..]);
         assert_eq!(&[0x82, 0x23, 0xA4, 0x74, 0x65, 0x73, 0x74, 0x21, 0x92, 0xA9, 0x63, 0x68,
                      0x61, 0x70, 0x2D, 0x73, 0x68, 0x61, 0x31, 0xC4, 0x14, 0xAC, 0x3F, 0xAD,
                      0x90, 0x6F, 0xFE, 0x80, 0x28, 0x92, 0x79, 0xCE, 0xC3, 0xFC, 0xDA, 0xB,
@@ -256,7 +258,6 @@ mod test {
 
     #[test]
     fn read_length_test() {
-        assert_eq!(5,
-                   read_length(&mut &[0xCE, 0x00, 0x00, 0x00, 0x5][..]));
+        assert_eq!(5, read_length(&mut &[0xCE, 0x00, 0x00, 0x00, 0x5][..]));
     }
 }

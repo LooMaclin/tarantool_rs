@@ -42,8 +42,8 @@ pub mod replace;
 
 pub use rmpv::Value;
 pub use tarantool::Tarantool;
-pub use select::{Select};
-pub use insert::{Insert};
+pub use select::Select;
+pub use insert::Insert;
 pub use update_common::UpdateCommon;
 pub use update_string::UpdateString;
 pub use update_integer::UpdateInteger;

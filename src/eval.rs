@@ -15,19 +15,16 @@ pub struct Eval<'a> {
 }
 
 impl<'a> Action for Eval<'a> {
-    fn get(&self)
-                      -> (RequestTypeKey, Vec<u8>)
-    {
+    fn get(&self) -> (RequestTypeKey, Vec<u8>) {
         let wrapped_keys = Value::Array(self.keys.clone());
         let keys_buffer = serialize_keys(wrapped_keys);
         let function_name = serialize_keys(Value::String(self.expression.into()));
         let mut body = [&[0x82][..],
-            &[Code::EXPR as u8][..],
-            &function_name[..],
-            &[Code::Tuple as u8][..],
-            &keys_buffer[..]]
+                        &[Code::EXPR as u8][..],
+                        &function_name[..],
+                        &[Code::Tuple as u8][..],
+                        &keys_buffer[..]]
             .concat();
         (RequestTypeKey::Eval, body)
     }
 }
-

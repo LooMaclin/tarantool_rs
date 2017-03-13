@@ -21,23 +21,21 @@ pub struct Upsert<'a> {
 }
 
 impl<'a> Action for Upsert<'a> {
-    fn get(&self)
-                      -> (RequestTypeKey, Vec<u8>)
-    {
+    fn get(&self) -> (RequestTypeKey, Vec<u8>) {
         let keys_buffer = serialize_keys(self.keys);
         let wrapped_argument = Value::from(self.argument);
         let mut serialized_argument = serialize_keys(wrapped_argument);
-        let mut body = [&[0x84][..],
-            &[Code::SpaceId as u8][..],
-            &[0xCD, 0x0, 0x0][..],
-            &[Code::Tuple as u8][..],
-            &keys_buffer[..],
-            &[Code::OPS as u8][..],
-            &[0x91, 0x93, FIX_STR_PREFIX, self.operation_type as u8, self.field_number][..],
-            &serialized_argument[..]]
-            .concat();
+        let mut body =
+            [&[0x84][..],
+             &[Code::SpaceId as u8][..],
+             &[0xCD, 0x0, 0x0][..],
+             &[Code::Tuple as u8][..],
+             &keys_buffer[..],
+             &[Code::OPS as u8][..],
+             &[0x91, 0x93, FIX_STR_PREFIX, self.operation_type as u8, self.field_number][..],
+             &serialized_argument[..]]
+                .concat();
         BigEndian::write_u16(&mut body[3..5], self.space);
         (RequestTypeKey::Upsert, body)
     }
 }
-

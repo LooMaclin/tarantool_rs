@@ -15,46 +15,51 @@ tarantool = { git = "https://github.com/LooMaclin/tarantool_rs.git" }
 
 #Usage
 
-#Include extern crate 
+##Include extern crate 
+
 ```rust
+
 extern crate tarantool;
 
+```
+
+##Use modules
+
+```rust
+
+use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete, UpdateCommon,
+                CommonOperation, Call, Eval, UpdateString, UpdateInteger, IntegerOperation, Upsert,
+                UpsertOperation};
 
 ```
 
-#Use modules
+##Create tarantool connection instance
 
-```
-
-use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete, UpdateCommon,CommonOperation};
-
-```
-
-#Create tarantool connection instance
-
-```
+```rust
 
     let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
         panic!("err: {}", err);
     });
+
     let error_handler = |err| panic!("Tarantool error: {}", err);
 
 ```
 
-#Select
+##Select
 
 ```rust
 
-    let tuples = Select {
+    let select = Select {
         space: 512,
         index: 0,
-        limit: 10,
+        limit: 100,
         offset: 0,
         iterator: IteratorType::All,
         keys: &vec![]
-    }
-        .perform(&mut tarantool_instance)
-        .unwrap_or_else(&error_handler);
+    };
+
+    let tuples = tarantool_instance.request(&select).unwrap_or_else(&error_handler);
+
     println!("Select result: ");
     for (index, tuple) in tuples.as_array().unwrap().iter().enumerate() {
         let tuple = tuple.as_array().unwrap();
@@ -63,178 +68,137 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
     
 ```
 
-#Insert
+##Insert
 
 ```rust
 
-    println!("Insert result: {:?}",
-    Insert {
+    let insert = Insert {
         space: 512,
         keys: &vec![Value::from(9)]
-    }
-        .perform(&mut tarantool_instance)
-        .unwrap_or_else(&error_handler));
+    };
+
+    println!("Insert result: {:?}", tarantool_instance.request(&insert).unwrap_or_else(&error_handler));
 
 ```
 
-#Replace
+##Replace
 
 ```rust
 
-    println!("Replace result: {:?}", Replace {
+    let replace = Replace {
         space: 512,
         keys: &vec![Value::from(1), Value::String(String::from("TEST REPLACE"))]
-    }
-        .perform(&mut tarantool_instance)
-        .unwrap_or_else(&error_handler));
+    };
+
+    println!("Replace result: {:?}", tarantool_instance.request(&replace).unwrap_or_else(&error_handler));
 
 ```
 
-#Update integer
+##Update integer
 
 ```rust
 
-use tarantool::tarantool::Tarantool;
-use tarantool::operation::IntegerOperation;
+    let update_integer = UpdateInteger {
+        space: 512,
+        index: 0,
+        operation_type: IntegerOperation::Addition,
+        field_number: 2,
+        argument: 1,
+        keys: &vec![Value::from(4)]
+    };
 
-fn main() {
-    let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
-        panic!("Tarantool auth error: {:?}", &err);
-    });
-    let tuples = tarantool_instance.update_integer(512, 0, (3), IntegerOperation::Addition, 2, 5).unwrap_or_else(|err| {
-        panic!("Tarantool select error: {:?}", &err);
-    });
-    println!("Result: {:?}", tuples);
-}
+    println!("Integer-Update result: {:?}", tarantool_instance.request(&update_integer).unwrap_or_else(&error_handler));
 
 ```
 
-#Update string
+##Update string
 
 ```rust
 
-use tarantool::tarantool::Tarantool;
-use tarantool::operation::StringOperation;
+    let update_string = UpdateString {
+        space: 512,
+        index: 0,
+        field_number: 1,
+        position: 3,
+        offset: 3,
+        argument: "TEST UPDATE STRING".into(),
+        keys: &vec![Value::from(2)]
+    };
 
-fn main() {
-    let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
-        panic!("Tarantool auth error: {:?}", &err);
-    });
-    let tuples = tarantool_instance.update_string(512, 0, (3), 1, 2, 2, "FUCK").unwrap_or_else(|err| {
-        panic!("Tarantool update string error: {:?}", &err);
-    });
-    println!("Result: {:?}", tuples);
-}
+    println!("String-Update result: {:?}", tarantool_instance.request(&update_string).unwrap_or_else(&error_handler));
 
 ```
 
-#Update common
+##Update common
 
 ```rust
 
-    println!("Common-Update result: {:?}", UpdateCommon {
+    let update_common = UpdateCommon {
         space: 512,
         index: 0,
         operation_type: CommonOperation::Assign,
         field_number: 3,
         argument: Value::String(String::from("Test Update Common Assign")),
         keys: &vec![Value::from(6)]
-    }
-        .perform(&mut tarantool_instance)
-        .unwrap_or_else(&error_handler));
+    };
+
+    println!("Common-Update result: {:?}", tarantool_instance.request(&update_common).unwrap_or_else(&error_handler));
 
 ```
 
-#Delete
+##Delete
 
 ```rust
 
-    println!("Delete result: {:?}", Delete {
+    let delete = Delete {
         space: 512,
         index: 0,
         keys: &vec![Value::from(3)]
-    }
-        .perform(&mut tarantool_instance)
-        .unwrap_or_else(&error_handler));
+    };
+
+    println!("Delete result: {:?}", tarantool_instance.request(&delete).unwrap_or_else(&error_handler));
 
 ```
 
-#Call
+##Call
 
 ```rust
 
-use tarantool::tarantool::Tarantool;
-use tarantool::Value;
+    let call = Call {
+        function_name: "test",
+        keys: &vec![]
+    };
 
-fn main() {
-    let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
-        panic!("Tarantool auth error: {:?}", &err);
-    });
-    let function_argument = vec![Value::from(12)];
-    let result = tarantool_instance.call("test", function_argument).unwrap_or_else(|err| {
-        panic!("Tarantool call error: {:?}", &err);
-    });
-    println!("Result: {:?}", result);
-}
+    println!("Call result: {:?}", tarantool_instance.request(&call).unwrap_or_else(&error_handler));
 
 ```
 
-#Call 16
+##Eval
 
 ```rust
 
-use tarantool::tarantool::Tarantool;
-use tarantool::Value;
+    let eval = Eval {
+        expression: r#"return 5+5"#,
+        keys: &vec![]
+    };
 
-fn main() {
-    let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
-        panic!("Tarantool auth error: {:?}", &err);
-    });
-    let function_argument = vec![Value::from(12)];
-    let result = tarantool_instance.call_16("test", function_argument).unwrap_or_else(|err| {
-        panic!("Tarantool call 16 error: {:?}", &err);
-    });
-    println!("Result: {:?}", result);
-}
+    println!("Eval result: {:?}", tarantool_instance.request(&eval).unwrap_or_else(&error_handler));
 
 ```
 
-#Eval
+##Upsert
 
 ```rust
 
-use tarantool::tarantool::Tarantool;
-use tarantool::Value;
+    let upsert = Upsert {
+        space: 512,
+        keys: &vec![Value::from(5)],
+        operation_type: UpsertOperation::Add,
+        field_number: 2,
+        argument: 2,
+    };
 
-fn main() {
-    let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
-        panic!("Tarantool auth error: {:?}", &err);
-    });
-    let function_argument = vec![];
-    let result = tarantool_instance.eval("test()", function_argument).unwrap_or_else(|err| {
-        panic!("Tarantool eval error: {:?}", &err);
-    });
-    println!("Result: {:?}", result);
-}
-
-```
-
-#Upsert
-
-```rust
-
-use tarantool::tarantool::Tarantool;
-use tarantool::operation::UpsertOperation;
-
-fn main() {
-    let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
-        panic!("Tarantool auth error: {:?}", &err);
-    });
-    let tuples = tarantool_instance.upsert(512, (3), UpsertOperation::Add, 2, 5).unwrap_or_else(|err| {
-        panic!("Tarantool select error: {:?}", &err);
-    });
-    println!("Result: {:?}", tuples);
-}
+    println!("Upsert result: {:?}", tarantool_instance.request(&upsert).unwrap_or_else(&error_handler));
 
 ```
 

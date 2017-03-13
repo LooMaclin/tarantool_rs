@@ -17,21 +17,18 @@ pub struct Delete<'a> {
 }
 
 impl<'a> Action for Delete<'a> {
-    fn get(&self)
-                      -> (RequestTypeKey, Vec<u8>)
-    {
+    fn get(&self) -> (RequestTypeKey, Vec<u8>) {
         let wrapped_keys = Value::Array(self.keys.clone());
         let keys_buffer = serialize_keys(wrapped_keys);
         let mut body = [&[0x83][..],
-            &[Code::SpaceId as u8][..],
-            &[0xCD, 0x0, 0x0][..],
-            &[Code::IndexId as u8][..],
-            &[self.index][..],
-            &[Code::Key as u8][..],
-            &keys_buffer[..]]
+                        &[Code::SpaceId as u8][..],
+                        &[0xCD, 0x0, 0x0][..],
+                        &[Code::IndexId as u8][..],
+                        &[self.index][..],
+                        &[Code::Key as u8][..],
+                        &keys_buffer[..]]
             .concat();
         BigEndian::write_u16(&mut body[3..5], self.space);
         (RequestTypeKey::Delete, body)
     }
 }
-

@@ -19,36 +19,33 @@ pub struct UpdateString<'a> {
     pub field_number: u8,
     pub position: u8,
     pub offset: u8,
-    pub argument: Cow<'a,str>,
+    pub argument: Cow<'a, str>,
     pub keys: &'a Vec<Value>,
 }
 
 impl<'a> Action for UpdateString<'a> {
-    fn get(&self)
-                      -> (RequestTypeKey, Vec<u8>)
-    {
+    fn get(&self) -> (RequestTypeKey, Vec<u8>) {
         let keys_buffer = serialize_keys(self.keys.clone());
         let wrapped_argument = Value::String(self.argument.clone().into());
         let mut serialized_argument = serialize_keys(wrapped_argument);
         let mut body = [&[0x84][..],
-            &[Code::SpaceId as u8][..],
-            &[0xCD, 0x0, 0x0][..],
-            &[Code::IndexId as u8][..],
-            &[self.index][..],
-            &[Code::Key as u8][..],
-            &keys_buffer[..],
-            &[Code::Tuple as u8][..],
-            &[0x91,
-                0x95,
-                FIX_STR_PREFIX,
-                StringOperation::Splice as u8,
-                self.field_number,
-                self.position,
-                self.offset][..],
-            &serialized_argument[..]]
+                        &[Code::SpaceId as u8][..],
+                        &[0xCD, 0x0, 0x0][..],
+                        &[Code::IndexId as u8][..],
+                        &[self.index][..],
+                        &[Code::Key as u8][..],
+                        &keys_buffer[..],
+                        &[Code::Tuple as u8][..],
+                        &[0x91,
+                          0x95,
+                          FIX_STR_PREFIX,
+                          StringOperation::Splice as u8,
+                          self.field_number,
+                          self.position,
+                          self.offset][..],
+                        &serialized_argument[..]]
             .concat();
         BigEndian::write_u16(&mut body[3..5], self.space);
         (RequestTypeKey::Update, body)
     }
 }
-
