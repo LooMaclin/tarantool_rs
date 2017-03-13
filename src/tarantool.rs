@@ -37,6 +37,8 @@ use call::Call;
 use replace::Replace;
 use eval::Eval;
 use action::Action;
+use {TARANTOOL_SPACE_ID, TARANTOOL_INDEX_ID, TARANTOOL_SPACE_ID_KEY_NUMBER,
+     TARANTOOL_INDEX_ID_KEY_NUMBER};
 
 #[derive(Debug)]
 pub struct Tarantool<'a> {
@@ -89,6 +91,17 @@ impl<'a> Tarantool<'a> {
         let header = header(request_type, self.get_id());
         let response = request(&header, &body, &mut self.descriptor);
         process_response(&response)
+    }
+
+    pub fn fetch_space_id(&mut self, space_name: String) -> u64 {
+        self.request(&Select {
+            space: TARANTOOL_SPACE_ID,
+            index: TARANTOOL_SPACE_ID_KEY_NUMBER,
+            limit: 1,
+            offset: 0,
+            iterator: IteratorType::Eq,
+            keys: &vec![Value::String(space_name)]
+        }).unwrap_or_else(|err| panic!("Space id fetch error: {}", err))[0][0].as_u64().unwrap()
     }
 }
 

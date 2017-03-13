@@ -59,3 +59,7 @@ pub use upsert_operation::UpsertOperation;
 
 
 pub const FIX_STR_PREFIX: u8 = 0xA1;
+pub const TARANTOOL_SPACE_ID: u16 = 280;
+pub const TARANTOOL_SPACE_ID_KEY_NUMBER: u8 = 2;
+pub const TARANTOOL_INDEX_ID: u16 = 288;
+pub const TARANTOOL_INDEX_ID_KEY_NUMBER: u8 = 2;
