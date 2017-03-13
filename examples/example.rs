@@ -1,6 +1,6 @@
 extern crate tarantool;
 
-use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete, UpdateCommon,CommonOperation, Call};
+use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete, UpdateCommon,CommonOperation, Call, Eval};
 
 fn main() {
     let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
@@ -44,8 +44,11 @@ fn main() {
     println!("Call result: {:?}", tarantool_instance.request(Call {
         function_name: "test",
         keys: &vec![]
-    })
-        .unwrap_or_else(&error_handler));
+    }).unwrap_or_else(&error_handler));
+    println!("Eval result: {:?}", tarantool_instance.request(Eval {
+        expression: r#"return 5+5"#,
+        keys: &vec![]
+    }).unwrap_or_else(&error_handler));
     println!("Insert result: {:?}",
     tarantool_instance.request(Insert {
         space: 512,
