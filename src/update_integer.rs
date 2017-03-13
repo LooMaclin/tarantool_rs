@@ -9,25 +9,23 @@ use integer_operation::IntegerOperation;
 use FIX_STR_PREFIX;
 use tarantool::Tarantool;
 use byteorder::ByteOrder;
+use action::Action;
 
 #[derive(Debug)]
 pub struct UpdateInteger<'a> {
-    space: u16,
-    index: u8,
-    operation_type: IntegerOperation,
-    field_number: u8,
-    argument: u32,
-    keys: &'a Vec<Value>,
+    pub space: u16,
+    pub index: u8,
+    pub operation_type: IntegerOperation,
+    pub field_number: u8,
+    pub argument: u32,
+    pub keys: &'a Vec<Value>,
 }
 
-impl<'a> UpdateInteger<'a> {
-    pub fn perform<I>(&self, state: &mut Tarantool)
-                      -> Result<Value, String>
-        where I: Serialize
+impl<'a> Action for UpdateInteger<'a> {
+    fn get(&self)
+                      -> (RequestTypeKey, Vec<u8>)
     {
         let keys_buffer = serialize_keys(self.keys);
-        let request_id = state.get_id();
-        let header = header(RequestTypeKey::Update, request_id);
         let wrapped_argument = Value::from(self.argument);
         let mut serialized_argument = serialize_keys(wrapped_argument);
         let mut body = [&[0x84][..],
@@ -42,8 +40,7 @@ impl<'a> UpdateInteger<'a> {
             &serialized_argument[..]]
             .concat();
         BigEndian::write_u16(&mut body[3..5], self.space);
-        let response = request(&header, &body, &mut state.descriptor);
-        process_response(&response)
+        (RequestTypeKey::Update, body)
     }
 }
 
