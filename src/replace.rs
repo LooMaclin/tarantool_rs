@@ -10,17 +10,15 @@ use byteorder::ByteOrder;
 
 #[derive(Debug)]
 pub struct Replace<'a> {
-    space: u16,
-    keys: &'a Vec<Value>,
+    pub space: u16,
+    pub keys: &'a Vec<Value>,
 }
 
 impl<'a> Replace<'a> {
-    pub fn perform<I>(&self, state: &mut Tarantool)
+    pub fn perform(&self, state: &mut Tarantool)
                       -> Result<Value, String>
-        where I: Serialize
     {
-        let mut keys_buffer = Vec::new();
-        let wrapped_keys = serialize_keys(Value::Array(self.keys.clone()));
+        let keys_buffer = serialize_keys(Value::Array(self.keys.clone()));
         let request_id = state.get_id();
         let header = header(RequestTypeKey::Replace, request_id);
         let mut body = [&[0x82][..],
