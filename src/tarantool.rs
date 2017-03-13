@@ -103,6 +103,17 @@ impl<'a> Tarantool<'a> {
             keys: &vec![Value::String(space_name)]
         }).unwrap_or_else(|err| panic!("Space id fetch error: {}", err))[0][0].as_u64().unwrap()
     }
+
+    pub fn fetch_index_id(&mut self, space_id: u64, index_name: String) -> u64 {
+        self.request(&Select {
+            space: TARANTOOL_INDEX_ID,
+            index: TARANTOOL_INDEX_ID_KEY_NUMBER,
+            limit: 1,
+            offset: 0,
+            iterator: IteratorType::Eq,
+            keys: &vec![Value::U64(space_id), Value::String(index_name)]
+        }).unwrap_or_else(|err| panic!("Index id fetch error: {}", err))[0][1].as_u64().unwrap()
+    }
 }
 
 
