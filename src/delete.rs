@@ -10,15 +10,14 @@ use byteorder::ByteOrder;
 
 #[derive(Debug)]
 pub struct Delete<'a> {
-    space: u16,
-    index: u8,
-    keys: &'a Vec<Value>,
+    pub space: u16,
+    pub index: u8,
+    pub keys: &'a Vec<Value>,
 }
 
 impl<'a> Delete<'a> {
-    pub fn perform<I>(&self, state: &mut Tarantool)
+    pub fn perform(&self, state: &mut Tarantool)
                       -> Result<Value, String>
-        where I: Serialize
     {
         let wrapped_keys = Value::Array(self.keys.clone());
         let keys_buffer = serialize_keys(wrapped_keys);
