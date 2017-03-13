@@ -26,12 +26,11 @@ fn main() {
         keys: &vec![Value::from(1), Value::String(String::from("TEST REPLACE"))]
     })
         .unwrap_or_else(&error_handler));
-    println!("Delete result: {:?}", Delete {
+    println!("Delete result: {:?}", tarantool_instance.request(Delete {
         space: 512,
         index: 0,
         keys: &vec![Value::from(3)]
-    }
-        .perform(&mut tarantool_instance)
+    })
         .unwrap_or_else(&error_handler));
     println!("Common-Update result: {:?}", UpdateCommon {
         space: 512,

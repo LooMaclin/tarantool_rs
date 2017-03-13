@@ -7,6 +7,7 @@ use code::Code;
 use serde::Serialize;
 use tarantool::Tarantool;
 use byteorder::ByteOrder;
+use action::Action;
 
 #[derive(Debug)]
 pub struct Delete<'a> {
@@ -15,14 +16,12 @@ pub struct Delete<'a> {
     pub keys: &'a Vec<Value>,
 }
 
-impl<'a> Delete<'a> {
-    pub fn perform(&self, state: &mut Tarantool)
-                      -> Result<Value, String>
+impl<'a> Action for Delete<'a> {
+    fn get(&self)
+                      -> (RequestTypeKey, Vec<u8>)
     {
         let wrapped_keys = Value::Array(self.keys.clone());
         let keys_buffer = serialize_keys(wrapped_keys);
-        let request_id = state.get_id();
-        let header = header(RequestTypeKey::Delete, request_id);
         let mut body = [&[0x83][..],
             &[Code::SpaceId as u8][..],
             &[0xCD, 0x0, 0x0][..],
@@ -32,8 +31,7 @@ impl<'a> Delete<'a> {
             &keys_buffer[..]]
             .concat();
         BigEndian::write_u16(&mut body[3..5], self.space);
-        let response = request(&header, &body, &mut state.descriptor);
-        process_response(&response)
+        (RequestTypeKey::Delete, body)
     }
 }
 
