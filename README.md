@@ -6,6 +6,23 @@ Sync/Async tarantool database connector.
 [![Coverage Status]
 (https://coveralls.io/repos/github/LooMaclin/tarantool_rs/badge.svg?branch=master)](https://coveralls.io/github/LooMaclin/tarantool_rs?branch=master)
 
+#Overview
+- [Install](#install)
+- [Usage](#usage)
+    - [Include extern crate](#include-extern-crate)
+    - [Use modules](#use-modules)
+    - [Create tarantool connection instance](#create-tarantool-connection-instance)
+    - [Select](#select)
+    - [Insert](#insert)
+    - [Delete](#delete)
+    - [Upsert](#upsert)
+    - [Replace](#replace)
+    - [Call](#call)
+    - [Eval](#eval)
+    - [Update common](#update-common)
+    - [Update string](#update-string)
+    - [Update integer](#update-integer)
+
 #Install
 
 ```toml
