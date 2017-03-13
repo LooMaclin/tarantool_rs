@@ -21,11 +21,10 @@ fn main() {
         let tuple = tuple.as_array().unwrap();
         println!("{}: {:?}", index, tuple);
     }
-    println!("Replace result: {:?}", Replace {
+    println!("Replace result: {:?}", tarantool_instance.request(Replace {
         space: 512,
         keys: &vec![Value::from(1), Value::String(String::from("TEST REPLACE"))]
-    }
-        .perform(&mut tarantool_instance)
+    })
         .unwrap_or_else(&error_handler));
     println!("Delete result: {:?}", Delete {
         space: 512,

@@ -7,6 +7,7 @@ use code::Code;
 use serde::Serialize;
 use tarantool::Tarantool;
 use byteorder::ByteOrder;
+use action::Action;
 
 #[derive(Debug)]
 pub struct Replace<'a> {
@@ -14,13 +15,10 @@ pub struct Replace<'a> {
     pub keys: &'a Vec<Value>,
 }
 
-impl<'a> Replace<'a> {
-    pub fn perform(&self, state: &mut Tarantool)
-                      -> Result<Value, String>
+impl<'a> Action for Replace<'a> {
+    fn get(&self) -> (RequestTypeKey, Vec<u8>)
     {
         let keys_buffer = serialize_keys(Value::Array(self.keys.clone()));
-        let request_id = state.get_id();
-        let header = header(RequestTypeKey::Replace, request_id);
         let mut body = [&[0x82][..],
             &[Code::SpaceId as u8][..],
             &[0xCD, 0x0, 0x0][..],
@@ -28,8 +26,7 @@ impl<'a> Replace<'a> {
             &keys_buffer[..]]
             .concat();
         BigEndian::write_u16(&mut body[3..5], self.space);
-        let response = request(&header, &body, &mut state.descriptor);
-        process_response(&response)
+        (RequestTypeKey::Replace, body)
     }
 }
 
