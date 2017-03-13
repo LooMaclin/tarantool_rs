@@ -10,7 +10,7 @@ fn main() {
     let tuples = tarantool_instance.request(Select {
         space: 512,
         index: 0,
-        limit: 10,
+        limit: 100,
         offset: 0,
         iterator: IteratorType::All,
         keys: &vec![]
@@ -42,10 +42,9 @@ fn main() {
     })
         .unwrap_or_else(&error_handler));
     println!("Insert result: {:?}",
-    Insert {
+    tarantool_instance.request(Insert {
         space: 512,
         keys: &vec![Value::from(9)]
-    }
-        .perform(&mut tarantool_instance)
+    })
         .unwrap_or_else(&error_handler));
 }
