@@ -12,6 +12,8 @@ Sync/Async tarantool database connector.
     - [Include extern crate](#include-extern-crate)
     - [Use modules](#use-modules)
     - [Create tarantool connection instance](#create-tarantool-connection-instance)
+    - [Retrieve space id](#retrieve-space-id)
+    - [Retrieve index id](#retrieve-index-id)
     - [Select](#select)
     - [Insert](#insert)
     - [Delete](#delete)
@@ -59,6 +61,24 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
     });
 
     let error_handler = |err| panic!("Tarantool error: {}", err);
+
+```
+
+##Retrieve space id
+
+```rust
+
+    let space_id = tarantool_instance.fetch_space_id("tester");
+    println!("Tester space id: {}", space_id);
+
+```
+
+##Retrieve index id
+
+```rust
+
+    let index_id = tarantool_instance.fetch_index_id(space_id, "primary");
+    println!("Tester primary index id: {}", index_id);
 
 ```
 
