@@ -8,11 +8,10 @@ pub enum RequestTypeKey {
     Replace = 0x03,
     Update = 0x04,
     Delete = 0x05,
-    Call16 = 0x06,
+    Call = 0x06,
     Auth = 0x07,
     Eval = 0x08,
     Upsert = 0x09,
-    Call = 0x0a,
     TypeStatMax = 0x0b,
     // Admin command codes
     Ping = 0x40,

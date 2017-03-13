@@ -36,7 +36,6 @@ pub mod update_common;
 pub mod update_string;
 pub mod eval;
 pub mod call;
-pub mod call_16;
 pub mod delete;
 pub mod action;
 pub mod replace;
@@ -52,7 +51,6 @@ pub use replace::Replace;
 pub use eval::Eval;
 pub use delete::Delete;
 pub use call::Call;
-pub use call_16::Call16;
 pub use iterator_type::IteratorType;
 pub use common_operation::CommonOperation;
 
