@@ -9,10 +9,10 @@ fn main() {
         panic!("err: {}", err);
     });
 
-    let space_id = tarantool_instance.fetch_space_id("tester".into());
+    let space_id = tarantool_instance.fetch_space_id("tester");
     println!("Tester space id: {}", space_id);
 
-    let index_id = tarantool_instance.fetch_index_id(space_id, "primary".into());
+    let index_id = tarantool_instance.fetch_index_id(space_id, "primary");
     println!("Tester primary index id: {}", index_id);
 }
 
