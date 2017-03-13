@@ -82,7 +82,7 @@ impl<'a> Tarantool<'a> {
         self.request_id
     }
 
-    pub fn request<I>(&mut self, request_body: I) -> Result<Value,String>
+    pub fn request<I>(&mut self, request_body: & I) -> Result<Value,String>
         where I: Action {
         let (request_type, body) = request_body.get();
         let header = header(request_type, self.get_id());
