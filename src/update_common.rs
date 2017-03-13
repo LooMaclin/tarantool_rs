@@ -10,6 +10,7 @@ use FIX_STR_PREFIX;
 use std::borrow::Cow;
 use byteorder::ByteOrder;
 use tarantool::Tarantool;
+use action::Action;
 
 #[derive(Debug)]
 pub struct UpdateCommon<'a> {
@@ -21,13 +22,11 @@ pub struct UpdateCommon<'a> {
     pub keys: &'a Vec<Value>,
 }
 
-impl<'a> UpdateCommon<'a> {
-    pub fn perform(&self, state: &mut Tarantool)
-                      -> Result<Value, String>
+impl<'a> Action for UpdateCommon<'a> {
+    fn get(&self)
+                      -> (RequestTypeKey, Vec<u8>)
     {
         let keys_buffer = serialize_keys(self.keys.clone());
-        let request_id = state.get_id();
-        let header = header(RequestTypeKey::Update, request_id);
         let mut serialized_argument = serialize_keys(self.argument.clone());
         let mut body = [&[0x84][..],
             &[Code::SpaceId as u8][..],
@@ -41,8 +40,7 @@ impl<'a> UpdateCommon<'a> {
             &serialized_argument[..]]
             .concat();
         BigEndian::write_u16(&mut body[3..5], self.space);
-        let response = request(&header, &body, &mut state.descriptor);
-        process_response(&response)
+        (RequestTypeKey::Update, body)
     }
 }
 

@@ -32,15 +32,14 @@ fn main() {
         keys: &vec![Value::from(3)]
     })
         .unwrap_or_else(&error_handler));
-    println!("Common-Update result: {:?}", UpdateCommon {
+    println!("Common-Update result: {:?}", tarantool_instance.request(UpdateCommon {
         space: 512,
         index: 0,
         operation_type: CommonOperation::Assign,
         field_number: 3,
         argument: Value::String(String::from("Test Update Common Assign")),
         keys: &vec![Value::from(6)]
-    }
-        .perform(&mut tarantool_instance)
+    })
         .unwrap_or_else(&error_handler));
     println!("Insert result: {:?}",
     Insert {
