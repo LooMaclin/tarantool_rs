@@ -7,7 +7,7 @@ use code::Code;
 use serde::Serialize;
 use tarantool::Tarantool;
 
-#[derive(Debug, Builder)]
+#[derive(Debug)]
 pub struct Eval<'a> {
     expression: &'a str,
     keys: &'a Vec<Value>,

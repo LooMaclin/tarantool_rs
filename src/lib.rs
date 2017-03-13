@@ -4,9 +4,6 @@ extern crate rmp_serde;
 extern crate serde;
 
 #[macro_use]
-extern crate derive_builder;
-
-#[macro_use]
 extern crate rmp;
 
 extern crate base64;
@@ -46,7 +43,15 @@ pub mod replace;
 pub use rmpv::Value;
 pub use tarantool::Tarantool;
 pub use select::{Select};
-pub use tarantool::{insert};
+pub use insert::{Insert};
+pub use update_common::UpdateCommon;
+pub use update_string::UpdateString;
+pub use update_integer::UpdateInteger;
+pub use replace::Replace;
+pub use eval::Eval;
+pub use delete::Delete;
+pub use call::Call;
+pub use call_16::Call16;
 pub use iterator_type::IteratorType;
 
 pub const FIX_STR_PREFIX: u8 = 0xA1;

@@ -1,3 +1,4 @@
+#[derive(Debug, Copy, Clone)]
 pub enum Code {
     RequestType = 0x00,
     Sync = 0x01,

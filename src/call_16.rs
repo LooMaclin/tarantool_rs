@@ -7,7 +7,7 @@ use code::Code;
 use serde::Serialize;
 use tarantool::Tarantool;
 
-#[derive(Debug, Builder)]
+#[derive(Debug)]
 pub struct Call16<'a> {
     function_name: &'static str,
     keys: &'a Vec<Value>,

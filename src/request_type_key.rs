@@ -1,3 +1,4 @@
+#[derive(Copy, Debug, Clone)]
 pub enum RequestTypeKey {
     // Command is successful
     Ok = 0x00,

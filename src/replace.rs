@@ -8,7 +8,7 @@ use serde::Serialize;
 use tarantool::Tarantool;
 use byteorder::ByteOrder;
 
-#[derive(Debug, Builder)]
+#[derive(Debug)]
 pub struct Replace<'a> {
     space: u16,
     keys: &'a Vec<Value>,

@@ -11,7 +11,7 @@ use std::borrow::Cow;
 use byteorder::ByteOrder;
 use tarantool::Tarantool;
 
-#[derive(Debug, Builder)]
+#[derive(Debug)]
 pub struct UpdateCommon<'a> {
     space: u16,
     index: u8,

@@ -10,7 +10,7 @@ use tarantool::Tarantool;
 use FIX_STR_PREFIX;
 use byteorder::ByteOrder;
 
-#[derive(Debug, Builder)]
+#[derive(Debug)]
 pub struct Upsert<'a> {
     space: u16,
     keys: &'a Vec<Value>,

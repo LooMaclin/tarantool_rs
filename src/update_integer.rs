@@ -10,7 +10,7 @@ use FIX_STR_PREFIX;
 use tarantool::Tarantool;
 use byteorder::ByteOrder;
 
-#[derive(Debug, Builder)]
+#[derive(Debug)]
 pub struct UpdateInteger<'a> {
     space: u16,
     index: u8,

@@ -1,3 +1,4 @@
+#[derive(Debug, Copy, Clone)]
 pub enum GreetingPacketParameters {
     Greeting = 63,
     SALT = 44,

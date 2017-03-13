@@ -9,10 +9,10 @@ use tarantool::Tarantool;
 use byteorder::ByteOrder;
 use hex_slice::AsHex;
 
-#[derive(Debug, Builder)]
+#[derive(Debug)]
 pub struct Insert<'a> {
-    space: u16,
-    keys: &'a Vec<Value>,
+    pub space: u16,
+    pub keys: &'a Vec<Value>,
 }
 
 impl<'a> Insert<'a> {

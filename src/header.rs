@@ -1,4 +1,4 @@
-#[derive(Debug, Clone)]
+#[derive(Debug, Copy, Clone)]
 pub struct Header {
     pub code: u32,
     pub sync: u64,

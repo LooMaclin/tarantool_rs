@@ -1,6 +1,6 @@
 extern crate tarantool;
 
-use tarantool::{Value, Tarantool, IteratorType, select, insert, Select};
+use tarantool::{Value, Tarantool, IteratorType, Select, Insert};
 
 fn main() {
     let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
@@ -20,11 +20,10 @@ fn main() {
         let tuple = tuple.as_array().unwrap();
         println!("{}: {:?}", index, tuple);
     }
-    let insert_result = insert()
-        .space(512 as u16)
-        .keys(&vec![Value::from(2433335)])
-        .build()
-        .unwrap()
+    Insert {
+        space: 512,
+        keys: &vec![Value::from(2433335)]
+    }
         .perform(&mut tarantool_instance)
         .unwrap_or_else(|err| panic!("Tarantool error: {}", err));
 }

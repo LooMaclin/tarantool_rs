@@ -11,7 +11,7 @@ use string_operation::StringOperation;
 use std::borrow::Cow;
 use byteorder::ByteOrder;
 
-#[derive(Debug, Builder)]
+#[derive(Debug)]
 pub struct UpdateString<'a> {
     space: u16,
     index: u8,

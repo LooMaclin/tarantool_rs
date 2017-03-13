@@ -8,7 +8,7 @@ use serde::Serialize;
 use tarantool::Tarantool;
 use byteorder::ByteOrder;
 
-#[derive(Debug, Builder)]
+#[derive(Debug)]
 pub struct Delete<'a> {
     space: u16,
     index: u8,
