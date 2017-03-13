@@ -10,26 +10,24 @@ use FIX_STR_PREFIX;
 use string_operation::StringOperation;
 use std::borrow::Cow;
 use byteorder::ByteOrder;
+use action::Action;
 
 #[derive(Debug)]
 pub struct UpdateString<'a> {
-    space: u16,
-    index: u8,
-    field_number: u8,
-    position: u8,
-    offset: u8,
-    argument: Cow<'a,str>,
-    keys: &'a Vec<Value>,
+    pub space: u16,
+    pub index: u8,
+    pub field_number: u8,
+    pub position: u8,
+    pub offset: u8,
+    pub argument: Cow<'a,str>,
+    pub keys: &'a Vec<Value>,
 }
 
-impl<'a> UpdateString<'a> {
-    pub fn perform<I>(&self, state: &mut Tarantool)
-                      -> Result<Value, String>
-        where I: Serialize
+impl<'a> Action for UpdateString<'a> {
+    fn get(&self)
+                      -> (RequestTypeKey, Vec<u8>)
     {
         let keys_buffer = serialize_keys(self.keys.clone());
-        let request_id = state.get_id();
-        let header = header(RequestTypeKey::Update, request_id);
         let wrapped_argument = Value::String(self.argument.clone().into());
         let mut serialized_argument = serialize_keys(wrapped_argument);
         let mut body = [&[0x84][..],
@@ -50,8 +48,7 @@ impl<'a> UpdateString<'a> {
             &serialized_argument[..]]
             .concat();
         BigEndian::write_u16(&mut body[3..5], self.space);
-        let response = request(&header, &body, &mut state.descriptor);
-        process_response(&response)
+        (RequestTypeKey::Update, body)
     }
 }
 
