@@ -1,6 +1,6 @@
 extern crate tarantool;
 
-use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete};
+use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete, UpdateCommon,CommonOperation};
 
 fn main() {
     let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
@@ -32,6 +32,16 @@ fn main() {
         space: 512,
         index: 0,
         keys: &vec![Value::from(3)]
+    }
+        .perform(&mut tarantool_instance)
+        .unwrap_or_else(&error_handler));
+    println!("Common-Update result: {:?}", UpdateCommon {
+        space: 512,
+        index: 0,
+        operation_type: CommonOperation::Assign,
+        field_number: 3,
+        argument: Value::String(String::from("Test Update Common Assign")),
+        keys: &vec![Value::from(6)]
     }
         .perform(&mut tarantool_instance)
         .unwrap_or_else(&error_handler));

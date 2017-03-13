@@ -13,18 +13,17 @@ use tarantool::Tarantool;
 
 #[derive(Debug)]
 pub struct UpdateCommon<'a> {
-    space: u16,
-    index: u8,
-    operation_type: CommonOperation,
-    field_number: u8,
-    argument: Value,
-    keys: &'a Vec<Value>,
+    pub space: u16,
+    pub index: u8,
+    pub operation_type: CommonOperation,
+    pub field_number: u8,
+    pub argument: Value,
+    pub keys: &'a Vec<Value>,
 }
 
 impl<'a> UpdateCommon<'a> {
-    pub fn perform<I>(&self, state: &mut Tarantool)
+    pub fn perform(&self, state: &mut Tarantool)
                       -> Result<Value, String>
-        where I: Serialize
     {
         let keys_buffer = serialize_keys(self.keys.clone());
         let request_id = state.get_id();

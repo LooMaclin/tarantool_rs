@@ -53,5 +53,7 @@ pub use delete::Delete;
 pub use call::Call;
 pub use call_16::Call16;
 pub use iterator_type::IteratorType;
+pub use common_operation::CommonOperation;
+
 
 pub const FIX_STR_PREFIX: u8 = 0xA1;
