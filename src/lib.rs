@@ -54,6 +54,8 @@ pub use call::Call;
 pub use iterator_type::IteratorType;
 pub use common_operation::CommonOperation;
 pub use integer_operation::IntegerOperation;
+pub use upsert::Upsert;
+pub use upsert_operation::UpsertOperation;
 
 
 pub const FIX_STR_PREFIX: u8 = 0xA1;
