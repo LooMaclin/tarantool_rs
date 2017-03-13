@@ -15,50 +15,65 @@ tarantool = { git = "https://github.com/LooMaclin/tarantool_rs.git" }
 
 #Usage
 
+#Include extern crate 
 ```rust
 extern crate tarantool;
+
+
+```
+
+#Use modules
+
+```
+
+use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete, UpdateCommon,CommonOperation};
+
+```
+
+#Create tarantool connection instance
+
+```
+
+    let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
+        panic!("err: {}", err);
+    });
+    let error_handler = |err| panic!("Tarantool error: {}", err);
+
 ```
 
 #Select
 
 ```rust
 
-
-use tarantool::tarantool::Tarantool;
-use tarantool::iterator_type::IteratorType;
-
-fn main() {
-    let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
-        panic!("Tarantool auth error: {:?}", &err);
-    });
-    let tuples = tarantool_instance.select(512, 0, 10, 0, IteratorType::All, (3)).unwrap_or_else(|err| {
-        panic!("Tarantool select error: {:?}", &err);
-    });
+    let tuples = Select {
+        space: 512,
+        index: 0,
+        limit: 10,
+        offset: 0,
+        iterator: IteratorType::All,
+        keys: &vec![]
+    }
+        .perform(&mut tarantool_instance)
+        .unwrap_or_else(&error_handler);
+    println!("Select result: ");
     for (index, tuple) in tuples.as_array().unwrap().iter().enumerate() {
         let tuple = tuple.as_array().unwrap();
         println!("{}: {:?}", index, tuple);
     }
-}
-
+    
 ```
 
 #Insert
 
 ```rust
 
-use tarantool::tarantool::Tarantool;
-use tarantool::Value;
-
-fn main() {
-    let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
-        panic!("Tarantool auth error: {:?}", &err);
-    });
-    let inserting_value = vec![Value::from(11), Value::String("Black Room".to_string()), Value::from(2017)];
-    let result = tarantool_instance.insert(512, inserting_value).unwrap_or_else(|err| {
-        panic!("Tarantool insert error: {:?}", &err);
-    });
-    println!("Result: {:?}", result);
-}
+    println!("Insert result: {:?}",
+    Insert {
+        space: 512,
+        keys: &vec![Value::from(9)]
+    }
+        .perform(&mut tarantool_instance)
+        .unwrap_or_else(&error_handler));
 
 ```
 
@@ -66,19 +81,12 @@ fn main() {
 
 ```rust
 
-use tarantool::tarantool::Tarantool;
-use tarantool::Value;
-
-fn main() {
-    let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
-        panic!("Tarantool auth error: {:?}", &err);
-    });
-    let inserting_value = vec![Value::from(6), Value::String("Black Some Sign".to_string()), Value::from(2005)];
-    let result = tarantool_instance.replace(512, inserting_value).unwrap_or_else(|err| {
-        panic!("Tarantool insert error: {:?}", &err);
-    });
-    println!("Result: {:?}", result);
-}
+    println!("Replace result: {:?}", Replace {
+        space: 512,
+        keys: &vec![Value::from(1), Value::String(String::from("TEST REPLACE"))]
+    }
+        .perform(&mut tarantool_instance)
+        .unwrap_or_else(&error_handler));
 
 ```
 
@@ -124,19 +132,16 @@ fn main() {
 
 ```rust
 
-use tarantool::tarantool::Tarantool;
-use tarantool::operation::CommonOperation;
-use tarantool::Value;
-
-fn main() {
-    let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
-        panic!("Tarantool auth error: {:?}", &err);
-    });
-    let tuples = tarantool_instance.update_common(512, 0, (3), CommonOperation::Assign, 2, Value::from(2015)).unwrap_or_else(|err| {
-        panic!("Tarantool update common error: {:?}", &err);
-    });
-    println!("Result: {:?}", tuples);
-}
+    println!("Common-Update result: {:?}", UpdateCommon {
+        space: 512,
+        index: 0,
+        operation_type: CommonOperation::Assign,
+        field_number: 3,
+        argument: Value::String(String::from("Test Update Common Assign")),
+        keys: &vec![Value::from(6)]
+    }
+        .perform(&mut tarantool_instance)
+        .unwrap_or_else(&error_handler));
 
 ```
 
@@ -144,19 +149,13 @@ fn main() {
 
 ```rust
 
-use tarantool::tarantool::Tarantool;
-use tarantool::Value;
-
-fn main() {
-    let mut tarantool_instance = Tarantool::auth("127.0.0.1:3301", "test", "test").unwrap_or_else(|err| {
-        panic!("Tarantool auth error: {:?}", &err);
-    });
-    let delete_key = vec![Value::from(12)];
-    let result = tarantool_instance.delete(512, 0, delete_key).unwrap_or_else(|err| {
-        panic!("Tarantool delete error: {:?}", &err);
-    });
-    println!("Result: {:?}", result);
-}
+    println!("Delete result: {:?}", Delete {
+        space: 512,
+        index: 0,
+        keys: &vec![Value::from(3)]
+    }
+        .perform(&mut tarantool_instance)
+        .unwrap_or_else(&error_handler));
 
 ```
 
