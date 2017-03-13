@@ -37,6 +37,7 @@ use call_16::{Call16};
 use call::{Call};
 use replace::{Replace};
 use eval::{Eval};
+use action::Action;
 
 #[derive(Debug)]
 pub struct Tarantool<'a> {
@@ -80,6 +81,14 @@ impl<'a> Tarantool<'a> {
     pub fn get_id(&mut self) -> u32 {
         self.request_id += 1;
         self.request_id
+    }
+
+    pub fn request<I>(&mut self, request_body: I) -> Result<Value,String>
+        where I: Action {
+        let (request_type, body) = request_body.get();
+        let header = header(request_type, self.get_id());
+        let response = request(&header, &body, &mut self.descriptor);
+        process_response(&response)
     }
 }
 

@@ -9,6 +9,7 @@ use serde::Serialize;
 use std::net::TcpStream;
 use std::io::{Read, Write};
 use tarantool::Tarantool;
+use action::Action;
 
 #[derive(Debug)]
 pub struct Select<'a> {
@@ -20,13 +21,12 @@ pub struct Select<'a> {
     pub keys: &'a Vec<Value>
 }
 
-impl<'a> Select<'a> {
+impl<'a> Action for Select<'a> {
 
-    pub fn perform(&self, mut state: &mut Tarantool)
-                     -> Result<Value, String>
+    fn get(&self)
+                     -> (RequestTypeKey, Vec<u8>)
     {
         let keys_buffer = serialize_keys(self.keys);
-        let header = header(RequestTypeKey::Select, state.get_id());
         let mut body = [&[0x86][..],
             &[Code::SpaceId as u8][..],
             &[0xCD, 0x0, 0x0][..],
@@ -42,8 +42,7 @@ impl<'a> Select<'a> {
             &keys_buffer[..]]
             .concat();
         BigEndian::write_u16(&mut body[3..5], self.space);
-        let response = request(&header, &body, &mut state.descriptor);
-        process_response(&response)
+        (RequestTypeKey::Select, body)
     }
 }
 

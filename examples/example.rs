@@ -7,15 +7,14 @@ fn main() {
         panic!("err: {}", err);
     });
     let error_handler = |err| panic!("Tarantool error: {}", err);
-    let tuples = Select {
+    let tuples = tarantool_instance.request(Select {
         space: 512,
         index: 0,
         limit: 10,
         offset: 0,
         iterator: IteratorType::All,
         keys: &vec![]
-    }
-        .perform(&mut tarantool_instance)
+    })
         .unwrap_or_else(&error_handler);
     println!("Select result: ");
     for (index, tuple) in tuples.as_array().unwrap().iter().enumerate() {

@@ -38,6 +38,7 @@ pub mod eval;
 pub mod call;
 pub mod call_16;
 pub mod delete;
+pub mod action;
 pub mod replace;
 
 pub use rmpv::Value;
