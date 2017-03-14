@@ -11,34 +11,32 @@ use std::borrow::Cow;
 use byteorder::ByteOrder;
 use tarantool::Tarantool;
 use action::Action;
+use rmpv::decode::read_value;
 
 #[derive(Debug)]
 pub struct UpdateCommon<'a> {
-    pub space: u16,
-    pub index: u8,
+    pub space: u64,
+    pub index: u64,
     pub operation_type: CommonOperation,
     pub field_number: u8,
-    pub argument: Value,
+    pub argument: &'a Value,
     pub keys: &'a Vec<Value>,
 }
 
 impl<'a> Action for UpdateCommon<'a> {
     fn get(&self) -> (RequestTypeKey, Vec<u8>) {
-        let keys_buffer = serialize(self.keys.clone());
-        let mut serialized_argument = serialize(self.argument.clone());
-        let mut body =
-            [&[0x84][..],
-             &[Code::SpaceId as u8][..],
-             &[0xCD, 0x0, 0x0][..],
-             &[Code::IndexId as u8][..],
-             &[self.index][..],
-             &[Code::Key as u8][..],
-             &keys_buffer[..],
-             &[Code::Tuple as u8][..],
-             &[0x91, 0x93, FIX_STR_PREFIX, self.operation_type as u8, self.field_number][..],
-             &serialized_argument[..]]
-                .concat();
-        BigEndian::write_u16(&mut body[3..5], self.space);
-        (RequestTypeKey::Update, body)
+        (RequestTypeKey::Update, serialize(Value::Map(vec![
+            (Value::from(Code::SpaceId as u8), Value::from(self.space)),
+            (Value::from(Code::IndexId as u8), Value::from(self.index)),
+            (Value::from(Code::Key as u8), Value::from(self.keys.clone())),
+            (Value::from(Code::Tuple as u8), Value::from(vec![Value::from(vec![
+                    read_value(&mut &[
+                        &[FIX_STR_PREFIX][..],
+                        &[self.operation_type as u8][..],
+                        &[self.field_number][..]].concat()[..]).unwrap(),
+                    Value::from(self.argument.clone())
+                ]
+            )]))
+        ])))
     }
 }
