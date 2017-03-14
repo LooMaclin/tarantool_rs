@@ -31,7 +31,7 @@ fn main() {
 
     let replace = Replace {
         space: 512,
-        keys: &vec![Value::from(1), Value::String(String::from("TEST REPLACE"))]
+        keys: &vec![Value::from(1), Value::from("TEST REPLACE")]
     };
 
     println!("Replace result: {:?}", tarantool_instance.request(&replace).unwrap_or_else(&error_handler));
@@ -49,7 +49,7 @@ fn main() {
         index: 0,
         operation_type: CommonOperation::Assign,
         field_number: 3,
-        argument: Value::String(String::from("Test Update Common Assign")),
+        argument: Value::from("Test Update Common Assign"),
         keys: &vec![Value::from(6)]
     };
 

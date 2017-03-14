@@ -56,6 +56,7 @@ pub use common_operation::CommonOperation;
 pub use integer_operation::IntegerOperation;
 pub use upsert::Upsert;
 pub use upsert_operation::UpsertOperation;
+pub use rmpv::{Utf8String, Integer};
 
 
 pub const FIX_STR_PREFIX: u8 = 0xA1;

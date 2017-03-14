@@ -20,7 +20,7 @@ use code::Code;
 use request_type_key::RequestTypeKey;
 use iterator_type::IteratorType;
 use rmpv::Value;
-use rmpv::decode::value::{read_value, Error};
+use rmpv::decode::value::{read_value};
 use std::clone::Clone;
 use rmpv::ValueRef;
 use rmpv::decode::value_ref::read_value_ref;
@@ -39,6 +39,7 @@ use eval::Eval;
 use action::Action;
 use {TARANTOOL_SPACE_ID, TARANTOOL_INDEX_ID, TARANTOOL_SPACE_ID_KEY_NUMBER,
      TARANTOOL_INDEX_ID_KEY_NUMBER};
+use {Utf8String, Integer};
 
 #[derive(Debug)]
 pub struct Tarantool<'a> {
@@ -84,7 +85,7 @@ impl<'a> Tarantool<'a> {
         self.request_id
     }
 
-    pub fn request<I>(&mut self, request_body: &I) -> Result<Value, String>
+    pub fn request<I>(&mut self, request_body: &I) -> Result<Value, Utf8String>
         where I: Action
     {
         let (request_type, body) = request_body.get();
@@ -94,7 +95,7 @@ impl<'a> Tarantool<'a> {
     }
 
     pub fn fetch_space_id<I>(&mut self, space_name: I) -> u64
-    where I: Into<String> {
+    where I: Into<Utf8String> {
         self.request(&Select {
             space: TARANTOOL_SPACE_ID,
             index: TARANTOOL_SPACE_ID_KEY_NUMBER,
@@ -105,39 +106,39 @@ impl<'a> Tarantool<'a> {
         }).unwrap_or_else(|err| panic!("Space id fetch error: {}", err))[0][0].as_u64().unwrap()
     }
 
-    pub fn fetch_index_id<I>(&mut self, space_id: u64, index_name: I) -> u64
-        where I: Into<String> {
+    pub fn fetch_index_id<I, K>(&mut self, space_id: K, index_name: I) -> u64
+        where I: Into<Utf8String>, K: Into<Integer> {
         self.request(&Select {
             space: TARANTOOL_INDEX_ID,
             index: TARANTOOL_INDEX_ID_KEY_NUMBER,
             limit: 1,
             offset: 0,
             iterator: IteratorType::Eq,
-            keys: &vec![Value::U64(space_id), Value::String(index_name.into())]
+            keys: &vec![Value::Integer(space_id.into()), Value::String(index_name.into())]
         }).unwrap_or_else(|err| panic!("Index id fetch error: {}", err))[0][1].as_u64().unwrap()
     }
 }
 
 
-pub fn process_response(response: &Response) -> Result<Value, String> {
+pub fn process_response(response: &Response) -> Result<Value, Utf8String> {
     let data = response.body.as_ref().ok_or("Body is empty.")?;
     match read_value(&mut &data[..]).unwrap() {
         Value::Map(mut data) => {
             let (code, content) = data.remove(0);
             let code = match code {
-                Value::U64(code) => code,
+                Value::Integer(code) => code,
                 _ => panic!("Operation result code is't number."),
             };
-            if code == 48 {
+            if code.as_u64().unwrap() == 48 {
                 Ok(content)
             } else {
                 match content {
                     Value::String(result) => Err(result),
-                    _ => Err("Error content is't string.".to_string()),
+                    _ => Err(Utf8String::from("Error content is't string.")),
                 }
             }
         }
-        _ => Err("Read data error.".to_string()),
+        _ => Err(Utf8String::from("Read data error.")),
     }
 }
 

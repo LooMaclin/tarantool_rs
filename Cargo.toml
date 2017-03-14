@@ -7,7 +7,7 @@ authors = ["Galimov Arsen Gareginovich <loomaclin@yandex.ru>"]
 serde = "0.9.9"
 rmp = "0.8.2"
 rmp-serde = "0.12.2"
-rmpv = { version = "0.2.0", features = ["with-serde"] }
+rmpv = { version = "0.3.0", features = ["with-serde"] }
 
 base64 = "0.2.1"
 sha1 = "0.2.0"
