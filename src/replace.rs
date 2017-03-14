@@ -1,6 +1,6 @@
 use iterator_type::IteratorType;
 use rmpv::Value;
-use tarantool::{header, request, serialize_keys, process_response};
+use tarantool::{header, request, serialize, process_response};
 use byteorder::BigEndian;
 use request_type_key::RequestTypeKey;
 use code::Code;
@@ -22,8 +22,8 @@ impl<'a> Action for Replace<'a> {
                 (Value::Integer((Code::SpaceId as u64).into()), Value::Integer(self.space.into())),
                 (Value::Integer((Code::Tuple as u64).into()), Value::from(self.keys.clone()))
             ]);
-        let body = serialize_keys(body);
-//        let keys_buffer = serialize_keys(Value::Array(self.keys.clone()));
+        let body = serialize(body);
+//        let keys_buffer = serialize(Value::Array(self.keys.clone()));
 //        let mut body = [&[0x82][..],
 //                        &[Code::SpaceId as u8][..],
 //                        &[0xCD, 0x0, 0x0][..],

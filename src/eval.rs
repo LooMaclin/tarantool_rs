@@ -1,6 +1,6 @@
 use iterator_type::IteratorType;
 use rmpv::Value;
-use tarantool::{header, request, serialize_keys, process_response};
+use tarantool::{header, request, serialize, process_response};
 use byteorder::BigEndian;
 use request_type_key::RequestTypeKey;
 use code::Code;
@@ -17,8 +17,8 @@ pub struct Eval<'a> {
 impl<'a> Action for Eval<'a> {
     fn get(&self) -> (RequestTypeKey, Vec<u8>) {
         let wrapped_keys = Value::Array(self.keys.clone());
-        let keys_buffer = serialize_keys(wrapped_keys);
-        let function_name = serialize_keys(Value::String(self.expression.into()));
+        let keys_buffer = serialize(wrapped_keys);
+        let function_name = serialize(Value::String(self.expression.into()));
         let mut body = [&[0x82][..],
                         &[Code::EXPR as u8][..],
                         &function_name[..],

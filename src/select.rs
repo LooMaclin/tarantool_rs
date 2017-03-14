@@ -1,6 +1,6 @@
 use iterator_type::IteratorType;
 use rmpv::Value;
-use tarantool::{header, request, serialize_keys, process_response};
+use tarantool::{header, request, serialize, process_response};
 use byteorder::BigEndian;
 use request_type_key::RequestTypeKey;
 use code::Code;
@@ -31,7 +31,7 @@ impl<'a> Action for Select<'a> {
             (Value::from(Code::Iterator as u64), Value::from(self.iterator as u64)),
             (Value::from(Code::Key as u64), Value::from(self.keys.clone())),
         ]);
-        let body = serialize_keys(body);
+        let body = serialize(body);
         (RequestTypeKey::Select, body)
     }
 }

@@ -1,6 +1,6 @@
 use iterator_type::IteratorType;
 use rmpv::Value;
-use tarantool::{header, request, serialize_keys, process_response};
+use tarantool::{header, request, serialize, process_response};
 use byteorder::BigEndian;
 use request_type_key::RequestTypeKey;
 use code::Code;
@@ -24,8 +24,8 @@ pub struct UpdateCommon<'a> {
 
 impl<'a> Action for UpdateCommon<'a> {
     fn get(&self) -> (RequestTypeKey, Vec<u8>) {
-        let keys_buffer = serialize_keys(self.keys.clone());
-        let mut serialized_argument = serialize_keys(self.argument.clone());
+        let keys_buffer = serialize(self.keys.clone());
+        let mut serialized_argument = serialize(self.argument.clone());
         let mut body =
             [&[0x84][..],
              &[Code::SpaceId as u8][..],

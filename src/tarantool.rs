@@ -205,7 +205,7 @@ pub fn request<I>(header: &[u8], body: &[u8], mut descriptor: &mut I) -> Respons
     }
 }
 
-pub fn serialize_keys<I>(keys: I) -> Vec<u8>
+pub fn serialize<I>(keys: I) -> Vec<u8>
     where I: Serialize
 {
     let mut keys_buffer = Vec::new();

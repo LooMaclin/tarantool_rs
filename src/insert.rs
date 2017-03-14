@@ -1,6 +1,6 @@
 use iterator_type::IteratorType;
 use rmpv::{ValueRef, Value};
-use tarantool::{header, request, serialize_keys, process_response};
+use tarantool::{header, request, serialize, process_response};
 use byteorder::BigEndian;
 use request_type_key::RequestTypeKey;
 use code::Code;
@@ -19,7 +19,7 @@ pub struct Insert<'a> {
 impl<'a> Action for Insert<'a> {
     fn get(&self) -> (RequestTypeKey, Vec<u8>) {
         let wrapped_keys = Value::Array(self.keys.clone());
-        let keys_buffer = serialize_keys(wrapped_keys);
+        let keys_buffer = serialize(wrapped_keys);
         let mut body = [&[0x82][..],
                         &[Code::SpaceId as u8][..],
                         &[0xCD, 0x0, 0x0][..],

@@ -1,6 +1,6 @@
 use iterator_type::IteratorType;
 use rmpv::Value;
-use tarantool::{header, request, serialize_keys, process_response};
+use tarantool::{header, request, serialize, process_response};
 use byteorder::BigEndian;
 use request_type_key::RequestTypeKey;
 use code::Code;
@@ -35,10 +35,10 @@ impl<'a> Action for Upsert<'a> {
                           Value::from(self.argument)
                   ]))
           ]);
-        let body = serialize_keys(body);
-//        let keys_buffer = serialize_keys(self.keys);
+        let body = serialize(body);
+//        let keys_buffer = serialize(self.keys);
 //        let wrapped_argument = Value::from(self.argument);
-//        let mut serialized_argument = serialize_keys(wrapped_argument);
+//        let mut serialized_argument = serialize(wrapped_argument);
 //        let mut body =
 //            [&[0x84][..],
 //             &[Code::SpaceId as u8][..],
