@@ -24,12 +24,12 @@ pub struct Select<'a> {
 impl<'a> Action for Select<'a> {
     fn get(&self) -> (RequestTypeKey, Vec<u8>) {
         (RequestTypeKey::Select, serialize(Value::Map(vec![
-            (Value::from(Code::SpaceId as u64), Value::from(self.space)),
-            (Value::from(Code::IndexId as u64), Value::from(self.index)),
-            (Value::from(Code::Limit as u64), Value::from(self.limit)),
-            (Value::from(Code::Offset as u64), Value::from(self.offset)),
-            (Value::from(Code::Iterator as u64), Value::from(self.iterator as u64)),
-            (Value::from(Code::Key as u64), Value::from(self.keys.clone())),
+            (Value::from(Code::SpaceId as u8), Value::from(self.space)),
+            (Value::from(Code::IndexId as u8), Value::from(self.index)),
+            (Value::from(Code::Limit as u8), Value::from(self.limit)),
+            (Value::from(Code::Offset as u8), Value::from(self.offset)),
+            (Value::from(Code::Iterator as u8), Value::from(self.iterator as u8)),
+            (Value::from(Code::Key as u8), Value::from(self.keys.clone())),
         ])))
     }
 }
