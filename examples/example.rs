@@ -63,7 +63,7 @@ fn main() {
     println!("Call result: {:?}", tarantool_instance.request(&call).unwrap_or_else(&error_handler));
 
     let eval = Eval {
-        expression: r#"return 5+5"#,
+        expression: r#"return 5+5"#.into(),
         keys: &vec![]
     };
 
