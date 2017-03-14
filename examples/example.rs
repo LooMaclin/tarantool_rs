@@ -15,7 +15,7 @@ fn main() {
     let select = Select {
         space: 512,
         index: 0,
-        limit: 100,
+        limit: 10,
         offset: 0,
         iterator: IteratorType::All,
         keys: &vec![]
