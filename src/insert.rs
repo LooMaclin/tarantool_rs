@@ -12,21 +12,15 @@ use action::Action;
 
 #[derive(Debug)]
 pub struct Insert<'a> {
-    pub space: u16,
+    pub space: u64,
     pub keys: &'a Vec<Value>,
 }
 
 impl<'a> Action for Insert<'a> {
     fn get(&self) -> (RequestTypeKey, Vec<u8>) {
-        let wrapped_keys = Value::Array(self.keys.clone());
-        let keys_buffer = serialize(wrapped_keys);
-        let mut body = [&[0x82][..],
-                        &[Code::SpaceId as u8][..],
-                        &[0xCD, 0x0, 0x0][..],
-                        &[Code::Tuple as u8][..],
-                        &keys_buffer[..]]
-            .concat();
-        BigEndian::write_u16(&mut body[3..5], self.space);
-        (RequestTypeKey::Insert, body)
+        (RequestTypeKey::Insert, serialize(Value::Map(vec![
+            (Value::from(Code::SpaceId as u8), Value::from(self.space)),
+            (Value::from(Code::Tuple as u8), Value::from(self.keys.clone()))
+        ])))
     }
 }
