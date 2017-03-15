@@ -49,7 +49,7 @@ fn main() {
         index: 0,
         operation_type: CommonOperation::Assign,
         field_number: 3,
-        argument: &Value::from("Test Update Common Assign"),
+        argument: &Value::from("a"),
         keys: &vec![Value::from(6)]
     };
 

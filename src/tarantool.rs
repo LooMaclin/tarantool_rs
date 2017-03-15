@@ -90,6 +90,7 @@ impl<'a> Tarantool<'a> {
     {
         let (request_type, body) = request_body.get();
         let header = header(request_type, self.get_id());
+        println!("Body: {:#X}", body.as_hex());
         let response = request(&header, &body, &mut self.descriptor);
         process_response(&response)
     }

@@ -32,11 +32,12 @@ impl<'a> Action for UpdateCommon<'a> {
                                     Value::from(self.keys.clone())),
                                    (Value::from(Code::Tuple as u8),
                                     Value::from(vec![Value::from(vec![
-                    read_value(&mut &[
-                        &[FIX_STR_PREFIX][..],
-                        &[self.operation_type as u8][..],
-                        &[self.field_number][..]].concat()[..]).unwrap(),
-                    Value::from(self.argument.clone())
+                                            read_value(
+                                                &mut &[&[FIX_STR_PREFIX][..],
+                                                &[self.operation_type as u8][..]]
+                                                    .concat()[..]).unwrap(),
+                        Value::from(self.field_number),
+                        Value::from(self.argument.clone())
                 ])]))])))
     }
 }
