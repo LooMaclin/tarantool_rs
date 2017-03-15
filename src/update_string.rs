@@ -15,11 +15,11 @@ use rmpv::decode::read_value;
 
 #[derive(Debug)]
 pub struct UpdateString<'a> {
-    pub space: u16,
-    pub index: u8,
-    pub field_number: u8,
-    pub position: u8,
-    pub offset: u8,
+    pub space: u64,
+    pub index: u64,
+    pub field_number: u64,
+    pub position: u64,
+    pub offset: u64,
     pub argument: Cow<'a, str>,
     pub keys: &'a Vec<Value>,
 }
@@ -36,9 +36,10 @@ impl<'a> Action for UpdateString<'a> {
                 read_value(&mut &[
                     &[FIX_STR_PREFIX][..],
                     &[StringOperation::Splice as u8][..],
-                    &[self.field_number][..],
-                    &[self.position as u8][..],
-                    &[self.offset as u8][..]].concat()[..]).unwrap(),
+                ].concat()[..]).unwrap(),
+                    Value::from(self.field_number),
+                    Value::from(self.position),
+                    Value::from(self.offset),
                 Value::from(self.argument.clone())
             ])]))])))
     }
