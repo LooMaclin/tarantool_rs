@@ -14,11 +14,11 @@ use rmpv::decode::read_value;
 
 #[derive(Debug)]
 pub struct UpdateInteger<'a> {
-    pub space: u16,
-    pub index: u8,
+    pub space: u64,
+    pub index: u64,
     pub operation_type: IntegerOperation,
-    pub field_number: u8,
-    pub argument: u32,
+    pub field_number: u64,
+    pub argument: u64,
     pub keys: &'a Vec<Value>,
 }
 
@@ -31,11 +31,9 @@ impl<'a> Action for UpdateInteger<'a> {
                                     Value::from(self.keys.clone())),
                                    (Value::from(Code::Tuple as u8),
                                     Value::from(vec![Value::from(vec![
-                read_value(&mut &[
-                    &[FIX_STR_PREFIX][..],
-                    &[self.operation_type as u8][..],
-                    &[self.field_number][..]].concat()[..]).unwrap(),
-                Value::from(self.argument.clone())
+                read_value(&mut &[&[FIX_STR_PREFIX][..], &[self.operation_type as u8][..]].concat()[..]).unwrap(),
+                    Value::from(self.field_number),
+                    Value::from(self.argument.clone())
             ])]))])))
     }
 }
