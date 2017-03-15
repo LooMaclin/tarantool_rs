@@ -10,6 +10,7 @@ use FIX_STR_PREFIX;
 use tarantool::Tarantool;
 use byteorder::ByteOrder;
 use action::Action;
+use rmpv::decode::read_value;
 
 #[derive(Debug)]
 pub struct UpdateInteger<'a> {
