@@ -17,15 +17,6 @@ pub struct Eval<'a> {
 
 impl<'a> Action for Eval<'a> {
     fn get(&self) -> (RequestTypeKey, Vec<u8>) {
-//        let wrapped_keys = Value::Array(self.keys.clone());
-//        let keys_buffer = serialize(wrapped_keys);
-//        let function_name = serialize(Value::String(self.expression.into()));
-//        let mut body = [&[0x82][..],
-//                        &[Code::EXPR as u8][..],
-//                        &function_name[..],
-//                        &[Code::Tuple as u8][..],
-//                        &keys_buffer[..]]
-//            .concat();
         (RequestTypeKey::Eval, serialize(Value::Map(vec![
             (Value::from(Code::EXPR as u8), Value::from(self.expression.clone())),
             (Value::from(Code::Tuple as u8), Value::from(self.keys.clone()))
