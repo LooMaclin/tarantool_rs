@@ -38,7 +38,7 @@ use replace::Replace;
 use eval::Eval;
 use action::Action;
 use {TARANTOOL_SPACE_ID, TARANTOOL_INDEX_ID, TARANTOOL_SPACE_ID_KEY_NUMBER,
-     TARANTOOL_INDEX_ID_KEY_NUMBER};
+     TARANTOOL_INDEX_ID_KEY_NUMBER, CHAP_SHA_1};
 use {Utf8String, Integer};
 
 #[derive(Debug)]
@@ -71,8 +71,6 @@ impl<'a> Tarantool<'a> {
         let scramble = scramble(&*tarantool.greeting_packet.salt, &*tarantool.password);
         let id = tarantool.get_id();
         let header = header(RequestTypeKey::Auth, id);
-        let mut chap_sha1_encoded = Vec::new();
-        "chap-sha1".encode(&mut Encoder::new(&mut &mut chap_sha1_encoded[..]));
         let body = build_auth_body(tarantool.user.clone(), &scramble);
         match request(&header, &body, &mut tarantool.descriptor).body {
             Some(data) => Err(String::from_utf8(data).unwrap()),
@@ -90,7 +88,8 @@ impl<'a> Tarantool<'a> {
     {
         let (request_type, body) = request_body.get();
         let header = header(request_type, self.get_id());
-        println!("Body: {:#X}", body.as_hex());
+        debug!("Request header: {:#X}", header.as_hex());
+        debug!("Request body: {:#X}", body.as_hex());
         let response = request(&header, &body, &mut self.descriptor);
         process_response(&response)
     }
@@ -259,8 +258,8 @@ fn build_auth_body<'a, S>(username: S, scramble: &[u8]) -> Vec<u8>
     [&[0x82][..],
      &[Code::UserName as u8][..],
      &encoded_username[..],
-     &[Code::Tuple as u8, 0x92, 0xA9][..],
-     &"chap-sha1".as_bytes(),
+     &[Code::Tuple as u8, 0x92][..],
+     &CHAP_SHA_1[..],
      &[0xC4, 0x14][..],
      &scramble[..]]
         .concat()
