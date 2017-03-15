@@ -24,16 +24,17 @@ pub struct Upsert<'a> {
 
 impl<'a> Action for Upsert<'a> {
     fn get(&self) -> (RequestTypeKey, Vec<u8>) {
-        (RequestTypeKey::Upsert, serialize(Value::Map(
-            vec![
-                (Value::from(Code::SpaceId as u8), Value::from(self.space)),
-                (Value::from(Code::Tuple as u8), Value::from(self.keys.clone())),
-                (Value::from(Code::OPS as u8), Value::Array(
-                    vec![
-                        read_value(&mut &[&[FIX_STR_PREFIX][..], &[self.operation_type as u8][..]].concat()[..]).unwrap(),
+        (RequestTypeKey::Upsert,
+         serialize(Value::Map(vec![(Value::from(Code::SpaceId as u8), Value::from(self.space)),
+                                   (Value::from(Code::Tuple as u8),
+                                    Value::from(self.keys.clone())),
+                                   (Value::from(Code::OPS as u8),
+                                    Value::Array(vec![
+                        read_value(&mut &[
+                            &[FIX_STR_PREFIX][..],
+                            &[self.operation_type as u8][..]].concat()[..]).unwrap(),
                         Value::from(self.field_number),
                         Value::from(self.argument)
-                    ]))
-            ])))
+                    ]))])))
     }
 }

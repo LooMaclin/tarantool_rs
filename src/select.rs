@@ -23,7 +23,8 @@ pub struct Select<'a> {
 
 impl<'a> Action for Select<'a> {
     fn get(&self) -> (RequestTypeKey, Vec<u8>) {
-        (RequestTypeKey::Select, serialize(Value::Map(vec![
+        (RequestTypeKey::Select,
+         serialize(Value::Map(vec![
             (Value::from(Code::SpaceId as u8), Value::from(self.space)),
             (Value::from(Code::IndexId as u8), Value::from(self.index)),
             (Value::from(Code::Limit as u8), Value::from(self.limit)),

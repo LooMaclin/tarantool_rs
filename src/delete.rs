@@ -18,10 +18,10 @@ pub struct Delete<'a> {
 
 impl<'a> Action for Delete<'a> {
     fn get(&self) -> (RequestTypeKey, Vec<u8>) {
-        (RequestTypeKey::Delete, serialize(Value::Map(vec![
-            (Value::from(Code::SpaceId as u8), Value::from(self.space)),
-            (Value::from(Code::IndexId as u8), Value::from(self.index)),
-            (Value::from(Code::Key as u8), Value::from(self.keys.clone()))
-        ])))
+        (RequestTypeKey::Delete,
+         serialize(Value::Map(vec![(Value::from(Code::SpaceId as u8), Value::from(self.space)),
+                                   (Value::from(Code::IndexId as u8), Value::from(self.index)),
+                                   (Value::from(Code::Key as u8),
+                                    Value::from(self.keys.clone()))])))
     }
 }

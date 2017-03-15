@@ -17,10 +17,9 @@ pub struct Replace<'a> {
 
 impl<'a> Action for Replace<'a> {
     fn get(&self) -> (RequestTypeKey, Vec<u8>) {
-        (RequestTypeKey::Replace, serialize(Value::Map(
-            vec![
-                (Value::from(Code::SpaceId as u8), Value::from(self.space)),
-                (Value::from(Code::Tuple as u8), Value::from(self.keys.clone()))
-            ])))
+        (RequestTypeKey::Replace,
+         serialize(Value::Map(vec![(Value::from(Code::SpaceId as u8), Value::from(self.space)),
+                                   (Value::from(Code::Tuple as u8),
+                                    Value::from(self.keys.clone()))])))
     }
 }

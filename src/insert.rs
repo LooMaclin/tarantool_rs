@@ -18,9 +18,9 @@ pub struct Insert<'a> {
 
 impl<'a> Action for Insert<'a> {
     fn get(&self) -> (RequestTypeKey, Vec<u8>) {
-        (RequestTypeKey::Insert, serialize(Value::Map(vec![
-            (Value::from(Code::SpaceId as u8), Value::from(self.space)),
-            (Value::from(Code::Tuple as u8), Value::from(self.keys.clone()))
-        ])))
+        (RequestTypeKey::Insert,
+         serialize(Value::Map(vec![(Value::from(Code::SpaceId as u8), Value::from(self.space)),
+                                   (Value::from(Code::Tuple as u8),
+                                    Value::from(self.keys.clone()))])))
     }
 }

@@ -20,7 +20,7 @@ use code::Code;
 use request_type_key::RequestTypeKey;
 use iterator_type::IteratorType;
 use rmpv::Value;
-use rmpv::decode::value::{read_value};
+use rmpv::decode::value::read_value;
 use std::clone::Clone;
 use rmpv::ValueRef;
 use rmpv::decode::value_ref::read_value_ref;
@@ -95,27 +95,36 @@ impl<'a> Tarantool<'a> {
     }
 
     pub fn fetch_space_id<I>(&mut self, space_name: I) -> u64
-    where I: Into<Utf8String> {
+        where I: Into<Utf8String>
+    {
         self.request(&Select {
-            space: TARANTOOL_SPACE_ID,
-            index: TARANTOOL_SPACE_ID_KEY_NUMBER,
-            limit: 1,
-            offset: 0,
-            iterator: IteratorType::Eq,
-            keys: &vec![Value::String(space_name.into())]
-        }).unwrap_or_else(|err| panic!("Space id fetch error: {}", err))[0][0].as_u64().unwrap()
+                    space: TARANTOOL_SPACE_ID,
+                    index: TARANTOOL_SPACE_ID_KEY_NUMBER,
+                    limit: 1,
+                    offset: 0,
+                    iterator: IteratorType::Eq,
+                    keys: &vec![Value::String(space_name.into())],
+                })
+                .unwrap_or_else(|err| panic!("Space id fetch error: {}", err))[0][0]
+            .as_u64()
+            .unwrap()
     }
 
     pub fn fetch_index_id<I, K>(&mut self, space_id: K, index_name: I) -> u64
-        where I: Into<Utf8String>, K: Into<Integer> {
+        where I: Into<Utf8String>,
+              K: Into<Integer>
+    {
         self.request(&Select {
-            space: TARANTOOL_INDEX_ID,
-            index: TARANTOOL_INDEX_ID_KEY_NUMBER,
-            limit: 1,
-            offset: 0,
-            iterator: IteratorType::Eq,
-            keys: &vec![Value::Integer(space_id.into()), Value::String(index_name.into())]
-        }).unwrap_or_else(|err| panic!("Index id fetch error: {}", err))[0][1].as_u64().unwrap()
+                    space: TARANTOOL_INDEX_ID,
+                    index: TARANTOOL_INDEX_ID_KEY_NUMBER,
+                    limit: 1,
+                    offset: 0,
+                    iterator: IteratorType::Eq,
+                    keys: &vec![Value::Integer(space_id.into()), Value::String(index_name.into())],
+                })
+                .unwrap_or_else(|err| panic!("Index id fetch error: {}", err))[0][1]
+            .as_u64()
+            .unwrap()
     }
 }
 
