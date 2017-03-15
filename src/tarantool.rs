@@ -162,14 +162,10 @@ pub fn read_payload<I>(length: u32, descriptor: &mut I) -> Vec<u8>
 }
 
 pub fn header(command: RequestTypeKey, request_id: u32) -> Vec<u8> {
-    let mut encoded_header = [&[0x82][..],
-                              &[Code::RequestType as u8][..],
-                              &[command as u8][..],
-                              &[Code::Sync as u8][..],
-                              &[0, 0, 0, 0, 0]]
-        .concat();
-    write_u32(&mut &mut encoded_header[4..], request_id).ok().unwrap();
-    encoded_header
+    serialize(Value::Map(vec![
+        (Value::from(Code::RequestType as u8), Value::from(command as u8)),
+        (Value::from(Code::Sync as u8), Value::from(request_id))
+    ]))
 }
 
 pub fn request<I>(header: &[u8], body: &[u8], mut descriptor: &mut I) -> Response
