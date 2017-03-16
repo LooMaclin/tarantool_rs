@@ -39,6 +39,7 @@ pub mod call;
 pub mod delete;
 pub mod action;
 pub mod replace;
+pub mod insertable;
 
 pub use rmpv::Value;
 pub use tarantool::Tarantool;
@@ -57,6 +58,7 @@ pub use integer_operation::IntegerOperation;
 pub use upsert::Upsert;
 pub use upsert_operation::UpsertOperation;
 pub use rmpv::{Utf8String, Integer};
+pub use insertable::Insertable;
 
 pub const CHAP_SHA_1: [u8; 10] = [0xA9, 0x63, 0x68, 0x61, 0x70, 0x2d, 0x73, 0x68, 0x61, 0x31];
 pub const FIX_STR_PREFIX: u8 = 0xA1;
