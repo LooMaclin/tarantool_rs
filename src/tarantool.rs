@@ -94,37 +94,45 @@ impl<'a> Tarantool<'a> {
         process_response(&response)
     }
 
-    pub fn fetch_space_id<I>(&mut self, space_name: I) -> u64
+    pub fn fetch_space_id<I>(&mut self, space_name: I) -> Result<u64, String>
         where I: Into<Utf8String>
     {
-        self.request(&Select {
+        match self.request(&Select {
                     space: TARANTOOL_SPACE_ID,
                     index: TARANTOOL_SPACE_ID_KEY_NUMBER,
                     limit: 1,
                     offset: 0,
                     iterator: IteratorType::Eq,
                     keys: &vec![Value::String(space_name.into())],
-                })
-                .unwrap_or_else(|err| panic!("Space id fetch error: {}", err))[0][0]
-            .as_u64()
-            .unwrap()
+                }) {
+            Ok(data) => {
+                Ok(data[0][0].as_u64().unwrap())
+            },
+            Err(err) => {
+                Err(err.into_str().unwrap())
+            }
+        }
     }
 
-    pub fn fetch_index_id<I, K>(&mut self, space_id: K, index_name: I) -> u64
-        where I: Into<Utf8String>,
-              K: Into<Integer>
+    pub fn fetch_index_id<I, K>(&mut self, space_id: I, index_name: K) -> Result<u64, String>
+        where I: Into<Integer>,
+              K: Into<Utf8String>
     {
-        self.request(&Select {
+        match self.request(&Select {
                     space: TARANTOOL_INDEX_ID,
                     index: TARANTOOL_INDEX_ID_KEY_NUMBER,
                     limit: 1,
                     offset: 0,
                     iterator: IteratorType::Eq,
                     keys: &vec![Value::Integer(space_id.into()), Value::String(index_name.into())],
-                })
-                .unwrap_or_else(|err| panic!("Index id fetch error: {}", err))[0][1]
-            .as_u64()
-            .unwrap()
+                }) {
+            Ok(data) => {
+                Ok(data[0][1].as_u64().unwrap())
+            },
+            Err(err) => {
+                Err(err.into_str().unwrap())
+            }
+        }
     }
 }
 
