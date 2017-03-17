@@ -106,7 +106,15 @@ impl<'a> Tarantool<'a> {
                     keys: &vec![Value::String(space_name.into())],
                 }) {
             Ok(data) => {
-                Ok(data[0][0].as_u64().unwrap())
+                println!("DATA: {:?}", data);
+                match data[0][0].as_u64() {
+                    Some(space_id) => {
+                        Ok(space_id)
+                    },
+                    None => {
+                        Err(String::from("Space not found"))
+                    }
+                }
             },
             Err(err) => {
                 Err(err.into_str().unwrap())

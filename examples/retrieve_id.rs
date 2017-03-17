@@ -9,7 +9,7 @@ fn main() {
         panic!("err: {}", err);
     });
 
-    let space_id = tarantool_instance.fetch_space_id("tester").unwrap();
+    let space_id = tarantool_instance.fetch_space_id("Tester").unwrap();
     println!("Tester space id: {:?}", space_id);
 
     let index_id = tarantool_instance.fetch_index_id(space_id, "primary").unwrap();
