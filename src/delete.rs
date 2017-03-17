@@ -10,13 +10,13 @@ use byteorder::ByteOrder;
 use action::Action;
 
 #[derive(Debug)]
-pub struct Delete<'a> {
+pub struct Delete {
     pub space: u64,
     pub index: u64,
-    pub keys: &'a Vec<Value>,
+    pub keys: Vec<Value>,
 }
 
-impl<'a> Action for Delete<'a> {
+impl Action for Delete {
     fn get(&self) -> (RequestTypeKey, Vec<u8>) {
         (RequestTypeKey::Delete,
          serialize(Value::Map(vec![(Value::from(Code::SpaceId as u8), Value::from(self.space)),

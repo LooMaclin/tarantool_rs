@@ -11,12 +11,12 @@ use hex_slice::AsHex;
 use action::Action;
 
 #[derive(Debug)]
-pub struct Insert<'a> {
+pub struct Insert {
     pub space: u64,
-    pub keys: &'a Vec<Value>,
+    pub keys: Vec<Value>,
 }
 
-impl<'a> Action for Insert<'a> {
+impl Action for Insert {
     fn get(&self) -> (RequestTypeKey, Vec<u8>) {
         (RequestTypeKey::Insert,
          serialize(Value::Map(vec![(Value::from(Code::SpaceId as u8), Value::from(self.space)),

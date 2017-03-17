@@ -21,7 +21,7 @@ pub struct UpdateString<'a> {
     pub position: u64,
     pub offset: u64,
     pub argument: Cow<'a, str>,
-    pub keys: &'a Vec<Value>,
+    pub keys: Vec<Value>,
 }
 
 impl<'a> Action for UpdateString<'a> {

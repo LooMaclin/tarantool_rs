@@ -103,7 +103,7 @@ impl<'a> Tarantool<'a> {
                     limit: 1,
                     offset: 0,
                     iterator: IteratorType::Eq,
-                    keys: &vec![Value::String(space_name.into())],
+                    keys: vec![Value::String(space_name.into())],
                 }) {
             Ok(data) => {
                 println!("DATA: {:?}", data);
@@ -132,7 +132,7 @@ impl<'a> Tarantool<'a> {
                     limit: 1,
                     offset: 0,
                     iterator: IteratorType::Eq,
-                    keys: &vec![Value::Integer(space_id.into()), Value::String(index_name.into())],
+                    keys: vec![Value::Integer(space_id.into()), Value::String(index_name.into())],
                 }) {
             Ok(data) => {
                 Ok(data[0][1].as_u64().unwrap())

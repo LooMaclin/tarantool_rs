@@ -12,7 +12,7 @@ use std::borrow::Cow;
 #[derive(Debug)]
 pub struct Eval<'a> {
     pub expression: Cow<'a, str>,
-    pub keys: &'a Vec<Value>,
+    pub keys: Vec<Value>,
 }
 
 impl<'a> Action for Eval<'a> {

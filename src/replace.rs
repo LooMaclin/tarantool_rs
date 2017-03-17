@@ -10,12 +10,12 @@ use byteorder::ByteOrder;
 use action::Action;
 
 #[derive(Debug)]
-pub struct Replace<'a> {
+pub struct Replace {
     pub space: u64,
-    pub keys: &'a Vec<Value>,
+    pub keys: Vec<Value>,
 }
 
-impl<'a> Action for Replace<'a> {
+impl Action for Replace {
     fn get(&self) -> (RequestTypeKey, Vec<u8>) {
         (RequestTypeKey::Replace,
          serialize(Value::Map(vec![(Value::from(Code::SpaceId as u8), Value::from(self.space)),

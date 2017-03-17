@@ -13,16 +13,16 @@ use action::Action;
 use rmpv::decode::read_value;
 
 #[derive(Debug)]
-pub struct UpdateInteger<'a> {
+pub struct UpdateInteger {
     pub space: u64,
     pub index: u64,
     pub operation_type: IntegerOperation,
     pub field_number: u64,
     pub argument: u64,
-    pub keys: &'a Vec<Value>,
+    pub keys: Vec<Value>,
 }
 
-impl<'a> Action for UpdateInteger<'a> {
+impl Action for UpdateInteger {
     fn get(&self) -> (RequestTypeKey, Vec<u8>) {
         (RequestTypeKey::Update,
          serialize(Value::Map(vec![(Value::from(Code::SpaceId as u8), Value::from(self.space)),
@@ -35,7 +35,7 @@ impl<'a> Action for UpdateInteger<'a> {
                     &[FIX_STR_PREFIX][..],
                     &[self.operation_type as u8][..]].concat()[..]).unwrap(),
                     Value::from(self.field_number),
-                    Value::from(self.argument.clone())
+                    Value::from(self.argument)
             ])]))])))
     }
 }

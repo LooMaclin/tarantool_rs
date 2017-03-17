@@ -14,16 +14,16 @@ use action::Action;
 use rmpv::decode::read_value;
 
 #[derive(Debug)]
-pub struct UpdateCommon<'a> {
+pub struct UpdateCommon {
     pub space: u64,
     pub index: u64,
     pub operation_type: CommonOperation,
     pub field_number: u8,
-    pub argument: &'a Value,
-    pub keys: &'a Vec<Value>,
+    pub argument: Value,
+    pub keys: Vec<Value>,
 }
 
-impl<'a> Action for UpdateCommon<'a> {
+impl Action for UpdateCommon {
     fn get(&self) -> (RequestTypeKey, Vec<u8>) {
         (RequestTypeKey::Update,
          serialize(Value::Map(vec![(Value::from(Code::SpaceId as u8), Value::from(self.space)),

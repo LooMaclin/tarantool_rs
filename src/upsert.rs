@@ -14,15 +14,15 @@ use rmpv::decode::read_value;
 use {Utf8String, Integer};
 
 #[derive(Debug)]
-pub struct Upsert<'a> {
+pub struct Upsert {
     pub space: u64,
-    pub keys: &'a Vec<Value>,
+    pub keys: Vec<Value>,
     pub operation_type: UpsertOperation,
     pub field_number: u64,
     pub argument: u64,
 }
 
-impl<'a> Action for Upsert<'a> {
+impl Action for Upsert {
     fn get(&self) -> (RequestTypeKey, Vec<u8>) {
         (RequestTypeKey::Upsert,
          serialize(Value::Map(vec![(Value::from(Code::SpaceId as u8), Value::from(self.space)),

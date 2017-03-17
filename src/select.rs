@@ -12,16 +12,16 @@ use tarantool::Tarantool;
 use action::Action;
 
 #[derive(Debug)]
-pub struct Select<'a> {
+pub struct Select {
     pub space: u64,
     pub index: u64,
     pub limit: u64,
     pub offset: u64,
     pub iterator: IteratorType,
-    pub keys: &'a Vec<Value>,
+    pub keys: Vec<Value>,
 }
 
-impl<'a> Action for Select<'a> {
+impl Action for Select {
     fn get(&self) -> (RequestTypeKey, Vec<u8>) {
         (RequestTypeKey::Select,
          serialize(Value::Map(vec![

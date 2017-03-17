@@ -13,7 +13,7 @@ use std::borrow::Cow;
 #[derive(Debug)]
 pub struct Call<'a> {
     pub function_name: Cow<'a, str>,
-    pub keys: &'a Vec<Value>,
+    pub keys: Vec<Value>,
 }
 
 impl<'a> Action for Call<'a> {
