@@ -44,7 +44,7 @@ fn main() {
     for (index, user) in users.iter().enumerate() {
         let insert = Insert {
             space: 512,
-            keys: &vec![
+            keys: vec![
                 Value::from(index),
                 Value::from(user.login.clone()),
                 Value::from(user.password.clone()),
@@ -61,7 +61,7 @@ fn main() {
         limit: 10,
         offset: 0,
         iterator: IteratorType::All,
-        keys: &vec![]
+        keys: vec![]
     };
 
     let tuples = tarantool_instance.request(&select).unwrap_or_else(&error_handler);
@@ -80,7 +80,7 @@ fn main() {
         let delete = Delete {
             space: 512,
             index: 0,
-            keys: &vec![tuple[0].clone()]
+            keys: vec![tuple[0].clone()]
         };
 
         println!("Delete result: {:?}", tarantool_instance.request(&delete).unwrap_or_else(&error_handler));
