@@ -135,13 +135,25 @@ impl<'a> Tarantool<'a> {
                     keys: vec![Value::Integer(space_id.into()), Value::String(index_name.into())],
                 }) {
             Ok(data) => {
-                Ok(data[0][1].as_u64().unwrap())
+                match data[0][1].as_u64() {
+                    Some(index_id) => {
+                        Ok(index_id)
+                    },
+                    None => {
+                        Err(String::from("Space not found"))
+                    }
+                }
             },
             Err(err) => {
                 Err(err.into_str().unwrap())
             }
         }
     }
+
+//    pub fn get_max_primary_index<I>(&mut self, space_id: I) -> Result<u64, String>
+//        where I: Into<Integer> {
+//
+//    }
 }
 
 
