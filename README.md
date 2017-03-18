@@ -3,8 +3,7 @@ Sync/Async tarantool database connector.
 
 [![Build Status](https://travis-ci.org/LooMaclin/tarantool_rs.svg?branch=master)](https://travis-ci.org/LooMaclin/tarantool_rs)
 
-[![Coverage Status]
-(https://coveralls.io/repos/github/LooMaclin/tarantool_rs/badge.svg?branch=master)](https://coveralls.io/github/LooMaclin/tarantool_rs?branch=master)
+[![Coverage Status](https://coveralls.io/repos/github/LooMaclin/tarantool_rs/badge.svg?branch=master)](https://coveralls.io/github/LooMaclin/tarantool_rs?branch=master)
 
 #Overview
 - [Install](#install)
