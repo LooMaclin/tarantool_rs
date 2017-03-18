@@ -1,3 +1,25 @@
+use response::Response;
+use rmpv::{Value, Utf8String};
+use rmpv::decode::read_value;
+use std::borrow::Cow;
+use code::Code;
+use {TARANTOOL_SPACE_ID, TARANTOOL_INDEX_ID, TARANTOOL_SPACE_ID_KEY_NUMBER,
+     TARANTOOL_INDEX_ID_KEY_NUMBER, CHAP_SHA_1};
+use std::io::{Read, Write};
+use request_type_key::RequestTypeKey;
+use rmp::encode::{write_u32, write_str};
+use header::Header;
+use serde::Serialize;
+use hex_slice::AsHex;
+use byteorder::BigEndian;
+use byteorder::ByteOrder;
+use rmp_serde::{Serializer, Deserializer};
+use rmp_serialize::{Encoder, Decoder};
+use rustc_serialize::{Encodable, Decodable};
+use sha1::Sha1;
+use base64::decode as decode_base64;
+
+
 pub fn process_response(response: &Response) -> Result<Value, Utf8String> {
     let data = response.body.as_ref().ok_or("Body is empty.")?;
     match read_value(&mut &data[..]).unwrap() {

@@ -40,6 +40,7 @@ use action::Action;
 use {TARANTOOL_SPACE_ID, TARANTOOL_INDEX_ID, TARANTOOL_SPACE_ID_KEY_NUMBER,
      TARANTOOL_INDEX_ID_KEY_NUMBER, CHAP_SHA_1};
 use {Utf8String, Integer};
+use utils::{header, request, serialize, process_response, scramble, build_auth_body};
 
 #[derive(Debug)]
 pub struct SyncClient<'a> {

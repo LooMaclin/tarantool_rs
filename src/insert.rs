@@ -1,6 +1,6 @@
 use iterator_type::IteratorType;
 use rmpv::{ValueRef, Value};
-use sync_client::{header, request, serialize, process_response};
+use utils::{header, request, serialize, process_response};
 use byteorder::BigEndian;
 use request_type_key::RequestTypeKey;
 use code::Code;
