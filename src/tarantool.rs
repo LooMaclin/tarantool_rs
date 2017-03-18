@@ -246,7 +246,7 @@ pub fn serialize<I>(keys: I) -> Vec<u8>
     keys_buffer
 }
 
-fn read_length<I>(stream: &mut I) -> u32
+pub fn read_length<I>(stream: &mut I) -> u32
     where I: Read
 {
     let mut packet_length = [0x00, 0x00, 0x00, 0x00, 0x00];

@@ -1,4 +1,3 @@
-#![feature(custom_derive)]
 extern crate rmpv;
 extern crate rmp_serde;
 extern crate serde;
@@ -12,6 +11,13 @@ extern crate rmp_serialize;
 extern crate rustc_serialize;
 extern crate byteorder;
 extern crate hex_slice;
+
+extern crate futures;
+extern crate tokio_io;
+extern crate tokio_core;
+extern crate tokio_proto;
+extern crate tokio_service;
+extern crate bytes;
 
 #[macro_use]
 extern crate log;
@@ -40,6 +46,11 @@ pub mod delete;
 pub mod action;
 pub mod replace;
 pub mod space;
+pub mod async_tarantool;
+pub mod tarantool_client;
+pub mod tarantool_codec;
+pub mod tarantool_proto;
+pub mod tarantool_validate;
 
 pub use rmpv::Value;
 pub use tarantool::Tarantool;

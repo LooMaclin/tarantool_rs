@@ -13,7 +13,7 @@ fn main() {
 
     let insert = Insert {
         space: 512,
-        keys: vec![Value::from(9)]
+        keys: vec![Value::Array(vec![Value::from(9)]), Value::Array(vec![Value::from(10)])]
     };
 
     println!("Insert result: {:?}", tarantool_instance.request(&insert).unwrap_or_else(&error_handler));
