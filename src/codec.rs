@@ -1,5 +1,5 @@
 use tokio_io::codec::{Decoder, Encoder};
-use tokio_proto::multiplex::{RequestId};
+use tokio_proto::multiplex::RequestId;
 use std::io;
 use bytes::{BytesMut, BufMut, BigEndian};
 use utils::read_length;
@@ -21,9 +21,9 @@ impl Decoder for TarantoolCodec {
         println!("length: {:?}", length);
         println!("buf len: {:?}", buf.len());
 
-        if buf.len() == (length+5) as usize {
+        if buf.len() == (length + 5) as usize {
             println!("fuck");
-            return Ok(Some((1, vec![])))
+            return Ok(Some((1, vec![])));
         }
 
         Ok(None)

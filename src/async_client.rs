@@ -15,8 +15,9 @@ pub struct AsyncClient {
 }
 
 impl AsyncClient {
-
-    pub fn connect(addr: &SocketAddr, handle: &Handle) -> Box<Future<Item =AsyncClient, Error = io::Error>> {
+    pub fn connect(addr: &SocketAddr,
+                   handle: &Handle)
+                   -> Box<Future<Item = AsyncClient, Error = io::Error>> {
         let ret = TcpClient::new(TarantoolProto)
             .connect(addr, handle)
             .map(|client_service| {

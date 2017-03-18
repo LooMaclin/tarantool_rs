@@ -8,7 +8,7 @@ pub struct Validate<T> {
 
 impl<T> Service for Validate<T>
     where T: Service<Request = Vec<u8>, Response = Vec<u8>, Error = io::Error>,
-          T::Future: 'static,
+          T::Future: 'static
 {
     type Request = Vec<u8>;
     type Response = Vec<u8>;
@@ -16,10 +16,7 @@ impl<T> Service for Validate<T>
     type Future = Box<Future<Item = Vec<u8>, Error = io::Error>>;
 
     fn call(&self, req: Vec<u8>) -> Self::Future {
-        Box::new(self.inner.call(req)
-            .and_then(|resp| {
-                Ok(resp)
-            }))
+        Box::new(self.inner.call(req).and_then(|resp| Ok(resp)))
     }
 }
 

@@ -99,27 +99,21 @@ impl<'a> SyncClient<'a> {
         where I: Into<Utf8String>
     {
         match self.request(&Select {
-                    space: TARANTOOL_SPACE_ID,
-                    index: TARANTOOL_SPACE_ID_KEY_NUMBER,
-                    limit: 1,
-                    offset: 0,
-                    iterator: IteratorType::Eq,
-                    keys: vec![Value::String(space_name.into())],
-                }) {
+                                space: TARANTOOL_SPACE_ID,
+                                index: TARANTOOL_SPACE_ID_KEY_NUMBER,
+                                limit: 1,
+                                offset: 0,
+                                iterator: IteratorType::Eq,
+                                keys: vec![Value::String(space_name.into())],
+                            }) {
             Ok(data) => {
                 println!("DATA: {:?}", data);
                 match data[0][0].as_u64() {
-                    Some(space_id) => {
-                        Ok(space_id)
-                    },
-                    None => {
-                        Err(String::from("Space not found"))
-                    }
+                    Some(space_id) => Ok(space_id),
+                    None => Err(String::from("Space not found")),
                 }
-            },
-            Err(err) => {
-                Err(err.into_str().unwrap())
             }
+            Err(err) => Err(err.into_str().unwrap()),
         }
     }
 
@@ -128,28 +122,21 @@ impl<'a> SyncClient<'a> {
               K: Into<Utf8String>
     {
         match self.request(&Select {
-                    space: TARANTOOL_INDEX_ID,
-                    index: TARANTOOL_INDEX_ID_KEY_NUMBER,
-                    limit: 1,
-                    offset: 0,
-                    iterator: IteratorType::Eq,
-                    keys: vec![Value::Integer(space_id.into()), Value::String(index_name.into())],
-                }) {
+                                space: TARANTOOL_INDEX_ID,
+                                index: TARANTOOL_INDEX_ID_KEY_NUMBER,
+                                limit: 1,
+                                offset: 0,
+                                iterator: IteratorType::Eq,
+                                keys: vec![Value::Integer(space_id.into()),
+                                           Value::String(index_name.into())],
+                            }) {
             Ok(data) => {
                 match data[0][1].as_u64() {
-                    Some(index_id) => {
-                        Ok(index_id)
-                    },
-                    None => {
-                        Err(String::from("Space not found"))
-                    }
+                    Some(index_id) => Ok(index_id),
+                    None => Err(String::from("Space not found")),
                 }
-            },
-            Err(err) => {
-                Err(err.into_str().unwrap())
             }
+            Err(err) => Err(err.into_str().unwrap()),
         }
     }
 }
-
-

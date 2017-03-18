@@ -1,6 +1,6 @@
 use rmpv::Value;
 use rmpv::Utf8String;
-use sync_client::{SyncClient};
+use sync_client::SyncClient;
 
 pub trait ToMsgPack {
     fn get_msgpack_representation(&self) -> Vec<Value>;
