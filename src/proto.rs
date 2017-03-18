@@ -1,7 +1,7 @@
 use tokio_proto::multiplex::{ClientProto, ServerProto};
 use tokio_io::{AsyncRead, AsyncWrite};
 use tokio_io::codec::Framed;
-use tarantool_codec::TarantoolCodec;
+use codec::TarantoolCodec;
 use std::io;
 
 pub struct TarantoolProto;

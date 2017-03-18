@@ -4,7 +4,7 @@ extern crate tokio_core;
 extern crate tokio_service;
 extern crate service_fn;
 
-use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete, UpdateCommon,
+use tarantool::{Value, SyncClient, IteratorType, Select, Insert, Replace, Delete, UpdateCommon,
                 CommonOperation, Call, Eval, UpdateString, UpdateInteger, IntegerOperation, Upsert,
                 UpsertOperation};
 
@@ -14,7 +14,7 @@ use tokio_service::Service;
 use service_fn::service_fn;
 use std::thread;
 use std::time::Duration;
-use tarantool::tarantool_client::Client;
+use tarantool::async_client::AsyncClient;
 
 fn main() {
 
@@ -26,7 +26,7 @@ fn main() {
     let handle = core.handle();
 
     core.run(
-        Client::connect(&addr, &handle)
+        AsyncClient::connect(&addr, &handle)
             .and_then(|client| {
                 client.call(vec![])
                     .and_then(move |response| {

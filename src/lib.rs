@@ -22,7 +22,7 @@ extern crate bytes;
 #[macro_use]
 extern crate log;
 
-pub mod tarantool;
+pub mod sync_client;
 pub mod code;
 pub mod greeting_packet;
 pub mod greeting_packet_parameters;
@@ -46,14 +46,13 @@ pub mod delete;
 pub mod action;
 pub mod replace;
 pub mod space;
-pub mod async_tarantool;
-pub mod tarantool_client;
-pub mod tarantool_codec;
-pub mod tarantool_proto;
-pub mod tarantool_validate;
+pub mod async_client;
+pub mod codec;
+pub mod proto;
+pub mod validate;
 
 pub use rmpv::Value;
-pub use tarantool::Tarantool;
+pub use sync_client::SyncClient;
 pub use select::Select;
 pub use insert::Insert;
 pub use update_common::UpdateCommon;

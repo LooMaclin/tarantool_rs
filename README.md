@@ -60,7 +60,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
         panic!("err: {}", err);
     });
 
-    let error_handler = |err| panic!("Tarantool error: {}", err);
+    let error_handler = |err| panic!(SyncClient, err);
 
 ```
 

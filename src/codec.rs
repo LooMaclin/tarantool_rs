@@ -2,7 +2,7 @@ use tokio_io::codec::{Decoder, Encoder};
 use tokio_proto::multiplex::{RequestId};
 use std::io;
 use bytes::{BytesMut, BufMut, BigEndian};
-use tarantool::read_length;
+use sync_client::read_length;
 
 pub struct TarantoolCodec;
 

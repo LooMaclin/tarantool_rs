@@ -1,6 +1,6 @@
 use iterator_type::IteratorType;
 use rmpv::Value;
-use tarantool::{header, request, serialize, process_response};
+use sync_client::{header, request, serialize, process_response};
 use byteorder::BigEndian;
 use request_type_key::RequestTypeKey;
 use code::Code;
@@ -9,7 +9,7 @@ use common_operation::CommonOperation;
 use FIX_STR_PREFIX;
 use std::borrow::Cow;
 use byteorder::ByteOrder;
-use tarantool::Tarantool;
+use sync_client::SyncClient;
 use action::Action;
 use rmpv::decode::read_value;
 

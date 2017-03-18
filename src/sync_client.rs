@@ -42,7 +42,7 @@ use {TARANTOOL_SPACE_ID, TARANTOOL_INDEX_ID, TARANTOOL_SPACE_ID_KEY_NUMBER,
 use {Utf8String, Integer};
 
 #[derive(Debug)]
-pub struct Tarantool<'a> {
+pub struct SyncClient<'a> {
     address: Cow<'a, str>,
     user: Cow<'a, str>,
     password: Cow<'a, str>,
@@ -51,14 +51,14 @@ pub struct Tarantool<'a> {
     pub descriptor: TcpStream,
 }
 
-impl<'a> Tarantool<'a> {
-    pub fn auth<S>(address: S, user: S, password: S) -> Result<Tarantool<'a>, String>
+impl<'a> SyncClient<'a> {
+    pub fn auth<S>(address: S, user: S, password: S) -> Result<SyncClient<'a>, String>
         where S: Into<Cow<'a, str>>
     {
         let mut stream = TcpStream::connect("127.0.0.1:3301").unwrap();
         let mut buf = [0; 128];
         stream.read(&mut buf);
-        let mut tarantool = Tarantool {
+        let mut tarantool = SyncClient {
             address: address.into(),
             user: user.into(),
             password: password.into(),
@@ -67,7 +67,7 @@ impl<'a> Tarantool<'a> {
             request_id: 0,
             descriptor: stream,
         };
-        debug!("Tarantool: {:?}", tarantool);
+        debug!("SyncClient: {:?}", tarantool);
         let scramble = scramble(&*tarantool.greeting_packet.salt, &*tarantool.password);
         let id = tarantool.get_id();
         let header = header(RequestTypeKey::Auth, id);

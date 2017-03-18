@@ -1,6 +1,6 @@
 use iterator_type::IteratorType;
 use rmpv::Value;
-use tarantool::{header, request, serialize, process_response};
+use sync_client::{header, request, serialize, process_response};
 use byteorder::BigEndian;
 use request_type_key::RequestTypeKey;
 use code::Code;
@@ -8,7 +8,7 @@ use byteorder::ByteOrder;
 use serde::Serialize;
 use std::net::TcpStream;
 use std::io::{Read, Write};
-use tarantool::Tarantool;
+use sync_client::SyncClient;
 use action::Action;
 
 #[derive(Debug)]
