@@ -8,7 +8,7 @@ use futures::Future;
 use std::io;
 use tokio_proto::TcpClient;
 use tokio_service::Service;
-
+use rmpv::{Value, Utf8String};
 
 pub struct AsyncClient {
     inner: Validate<ClientService<TcpStream, TarantoolProto>>,
@@ -24,14 +24,13 @@ impl AsyncClient {
                 let validate = Validate { inner: client_service};
                 AsyncClient { inner: validate }
             });
-
         Box::new(ret)
     }
 }
 
 impl Service for AsyncClient {
     type Request = Vec<u8>;
-    type Response = Vec<u8>;
+    type Response = Result<Value, Utf8String>;
     type Error = io::Error;
     // For simplicity, box the future.
     type Future = Box<Future<Item = Vec<u8>, Error = io::Error>>;

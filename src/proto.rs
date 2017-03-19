@@ -14,6 +14,8 @@ impl<T: AsyncRead + AsyncWrite + 'static> ClientProto<T> for TarantoolProto {
     type BindTransport = Result<Self::Transport, io::Error>;
 
     fn bind_transport(&self, io: T) -> Self::BindTransport {
-        Ok(io.framed(TarantoolCodec))
+        Ok(io.framed(TarantoolCodec {
+            handshaked: false,
+        }))
     }
 }

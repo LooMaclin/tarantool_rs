@@ -3,29 +3,48 @@ use tokio_proto::multiplex::RequestId;
 use std::io;
 use bytes::{BytesMut, BufMut, BigEndian};
 use utils::read_length;
+use hex_slice::AsHex;
+use greeting_packet::GreetingPacket;
 
-pub struct TarantoolCodec;
+
+pub struct TarantoolCodec {
+    pub handshaked: bool,
+}
 
 impl Decoder for TarantoolCodec {
     type Item = (RequestId, Vec<u8>);
     type Error = io::Error;
 
     fn decode(&mut self, buf: &mut BytesMut) -> Result<Option<(RequestId, Vec<u8>)>, io::Error> {
-        // At least 5 bytes are required for a frame: 4 byte head + one byte
-        // '\n'
-        if buf.len() < 5 {
-            return Ok(None);
-        }
-
-        let length = read_length(&mut buf.as_ref());
-        println!("length: {:?}", length);
         println!("buf len: {:?}", buf.len());
+        println!("buf: {:#X}", buf.as_ref().as_hex());
+        match self.handshaked {
+            true => {
 
-        if buf.len() == (length + 5) as usize {
-            println!("fuck");
-            return Ok(Some((1, vec![])));
+                if buf.len() < 5 {
+                    return Ok(None);
+                }
+
+                let length = read_length(&mut buf.as_ref());
+                println!("length: {:?}", length);
+
+                if buf.len() == (length + 5) as usize {
+                    println!("fuck");
+                    return Ok(Some((1, vec![])));
+                }
+            },
+            false => {
+                if buf.len() < 128 {
+                    return Ok(None)
+                } else if buf.len() == 128 {
+                    self.handshaked = true;
+                    let greeting = GreetingPacket::new(String::from_utf8(buf[64..108].to_vec()).unwrap(),
+                                        String::from_utf8(buf[..64].to_vec()).unwrap());
+                    println!("greeting: {:?}", greeting);
+                    return Ok(Some((1, buf[..].to_vec())))
+                }
+            }
         }
-
         Ok(None)
     }
 }

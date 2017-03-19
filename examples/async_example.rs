@@ -26,10 +26,7 @@ fn main() {
     let handle = core.handle();
 
     core.run(AsyncClient::connect(&addr, &handle).and_then(|client| {
-            client.call(vec![]).and_then(move |response| {
-                                             println!("CLIENT: {:?}", response);
-                                             client.call(vec![])
-                                         })
+            client.call(vec![])
         }))
         .unwrap();
 
