@@ -18,38 +18,33 @@ use utils::{header, build_request, process_response};
 use std::str::FromStr;
 use insert::Insert;
 
-pub struct AsyncClient<T> {
-    data: T,
+pub struct AsyncClient {
     inner: Validate<ClientService<TcpStream, TarantoolProto>>,
 }
 
-impl <T> AsyncClient<T>{
-    pub fn auth<'a, S>(address: S, user: S, password: S, handle: &Handle) -> Box<Future<Item = AsyncClient<T>, Error = io::Error>>
+impl AsyncClient{
+    pub fn auth<'a, S>(address: S, user: S, password: S, handle: &Handle) -> Box<Future<Item = AsyncClient, Error = io::Error>>
     where S: Into<Cow<'a, str>> {
         let addr = SocketAddr::from_str(address.into().as_ref()).unwrap();
         let ret = TcpClient::new(TarantoolProto)
             .connect(&addr, handle)
             .map(|client_service| {
                 let validate = Validate { inner: client_service};
-                AsyncClient { inner: validate,  data: Insert {
-                    space: 512,
-                    keys: vec![],
-                }}
+                AsyncClient { inner: validate }
             });
         Box::new(ret)
     }
 }
 
-impl<T> Service for AsyncClient<T>
-    where T: Service,
-          T::Request: Action {
-    type Request = T::Request;
+impl Service for AsyncClient
+     {
+    type Request = Action;
     type Response = Result<Value, Utf8String>;
     type Error = io::Error;
 
     type Future = Box<Future<Item = Self::Response, Error = Self::Error>>;
 
-    fn call(&self, req: Self::Request) -> Self::Future {
+    fn call<T>(&self, req: T) -> Self::Future where T:Action {
         self.inner.call(req)
     }
 }
