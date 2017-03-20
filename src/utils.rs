@@ -18,6 +18,23 @@ use rmp_serialize::{Encoder, Decoder};
 use rustc_serialize::{Encodable, Decodable};
 use sha1::Sha1;
 use base64::decode as decode_base64;
+use action::Action;
+
+pub fn build_request<I>(request_body: &I, request_id: u32) -> Vec<u8>
+    where I: Action
+{
+    let (request_type, body) = request_body.get();
+    let header = header(request_type, request_id as u32);
+    debug!("Request header: {:#X}", header.as_hex());
+    debug!("Request body: {:#X}", body.as_hex());
+    let mut encoded_request_length = [0x00, 0x00, 0x00, 0x00, 0x00];
+    write_u32(&mut &mut encoded_request_length[..],
+              (header.len() + body.len()) as u32)
+        .ok()
+        .unwrap();
+    let request = [&encoded_request_length[..], &header[..], &body[..]].concat();
+    request
+}
 
 
 pub fn process_response(response: &Response) -> Result<Value, Utf8String> {
@@ -59,47 +76,7 @@ pub fn header(command: RequestTypeKey, request_id: u32) -> Vec<u8> {
                               (Value::from(Code::Sync as u8), Value::from(request_id))]))
 }
 
-pub fn request<I>(header: &[u8], body: &[u8], mut descriptor: &mut I) -> Response
-    where I: Write + Read
-{
-    let mut encoded_request_length = [0x00, 0x00, 0x00, 0x00, 0x00];
-    write_u32(&mut &mut encoded_request_length[..],
-              (header.len() + body.len()) as u32)
-            .ok()
-            .unwrap();
-    let request = [&encoded_request_length[..], &header[..], &body[..]].concat();
-    let write_result = descriptor.write(&request);
-    debug!("WRITE RESULT: {:?}", write_result);
-    let response_length = read_length(&mut descriptor);
-    debug!("RESPONSE LENGTH: {:?}", response_length);
-    let payload = read_payload(response_length, &mut descriptor);
-    debug!("PAYLOAD: {:?}", payload);
-    debug!("request(size: {}): {:#X}",
-           &request.len(),
-           &request.as_hex());
-    debug!("length(size: {}): {:#X}",
-           &encoded_request_length.len(),
-           &encoded_request_length.as_hex());
-    debug!("header(size: {}): {:#X}", &header.len(), &header.as_hex());
-    debug!("body(size: {}): {:#X}", &body.len(), &body.as_hex());
-    debug!("payload(size: {}): {:#X}",
-           &payload.len(),
-           &payload.as_hex());
-    debug!("payload(as text): {}", String::from_utf8_lossy(&payload));
-    let header = Header {
-        code: BigEndian::read_u32(&payload[3..8]),
-        sync: BigEndian::read_u64(&payload[9..17]),
-        schema_id: BigEndian::read_u32(&payload[19..23]),
-    };
-    Response {
-        header: header,
-        body: if payload.len() > 24 {
-            Some(payload[23..payload.len()].to_vec())
-        } else {
-            Option::None
-        },
-    }
-}
+
 
 pub fn serialize<I>(keys: I) -> Vec<u8>
     where I: Serialize

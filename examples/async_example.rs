@@ -20,13 +20,13 @@ fn main() {
 
     let mut core = Core::new().unwrap();
 
-    // This brings up our server.
-    let addr = "127.0.0.1:3301".parse().unwrap();
-
     let handle = core.handle();
 
-    core.run(AsyncClient::connect(&addr, &handle).and_then(|client| {
-            client.call(vec![])
+    core.run(AsyncClient::auth("127.0.0.1:3301", "test", "test", &handle).and_then(|client| {
+            client.request(&Insert {
+                space: 512,
+                keys: vec![Value::from(23)]
+            })
         }))
         .unwrap();
 

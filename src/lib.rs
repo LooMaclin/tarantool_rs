@@ -51,6 +51,7 @@ pub mod codec;
 pub mod proto;
 pub mod validate;
 pub mod utils;
+pub mod state;
 
 pub use rmpv::Value;
 pub use sync_client::SyncClient;
