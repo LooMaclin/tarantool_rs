@@ -8,13 +8,13 @@ pub struct Validate<T> {
 }
 
 impl<T> Service for Validate<T>
-    where T: Service<Request = Vec<u8>, Response = Value, Error = Utf8String>,
+    where T: Service<Request = Vec<u8>, Response = Result<Value, Utf8String>, Error = io::Error>,
           T::Future: 'static
 {
     type Request = Vec<u8>;
-    type Response = Value;
-    type Error = Utf8String;
-    type Future = Box<Future<Item = Value, Error = Utf8String>>;
+    type Response = Result<Value, Utf8String>;
+    type Error = io::Error;
+    type Future = Box<Future<Item = Result<Value, Utf8String>, Error = io::Error>>;
 
     fn call(&self, req: Vec<u8>) -> Self::Future {
         Box::new(self.inner.call(req).and_then(|resp| Ok(resp)))
@@ -22,12 +22,12 @@ impl<T> Service for Validate<T>
 }
 
 impl<T> NewService for Validate<T>
-    where T: NewService<Request = Vec<u8>, Response = Value, Error = Utf8String>,
+    where T: NewService<Request = Vec<u8>, Response = Result<Value, Utf8String>, Error = io::Error>,
           <T::Instance as Service>::Future: 'static
 {
     type Request = Vec<u8>;
-    type Response = Value;
-    type Error = Utf8String;
+    type Response = Result<Value, Utf8String>;
+    type Error = io::Error;
     type Instance = Validate<T::Instance>;
 
     fn new_service(&self) -> io::Result<Self::Instance> {

@@ -20,11 +20,11 @@ use sha1::Sha1;
 use base64::decode as decode_base64;
 use action::Action;
 
-pub fn build_request<I>(request_body: &I, request_id: u32) -> Vec<u8>
+pub fn build_request<I>(request_body: &I, request_id: u64) -> Vec<u8>
     where I: Action
 {
     let (request_type, body) = request_body.get();
-    let header = header(request_type, request_id as u32);
+    let header = header(request_type, request_id);
     debug!("Request header: {:#X}", header.as_hex());
     debug!("Request body: {:#X}", body.as_hex());
     let mut encoded_request_length = [0x00, 0x00, 0x00, 0x00, 0x00];
@@ -71,7 +71,7 @@ pub fn read_payload<I>(length: u32, descriptor: &mut I) -> Vec<u8>
     payload
 }
 
-pub fn header(command: RequestTypeKey, request_id: u32) -> Vec<u8> {
+pub fn header(command: RequestTypeKey, request_id: u64) -> Vec<u8> {
     serialize(Value::Map(vec![(Value::from(Code::RequestType as u8), Value::from(command as u8)),
                               (Value::from(Code::Sync as u8), Value::from(request_id))]))
 }

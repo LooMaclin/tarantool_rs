@@ -5,17 +5,22 @@ use bytes::{BytesMut, BufMut, BigEndian};
 use utils::read_length;
 use hex_slice::AsHex;
 use greeting_packet::GreetingPacket;
-
+use rmpv::{Utf8String, Value};
+use utils::{build_request, header, build_auth_body, scramble};
+use request_type_key::RequestTypeKey;
+use rmp::encode::write_u32;
+use insert::Insert;
+use rmpv::decode::read_value;
 
 pub struct TarantoolCodec {
     pub handshaked: bool,
 }
 
 impl Decoder for TarantoolCodec {
-    type Item = (RequestId, Vec<u8>);
+    type Item = (RequestId, Result<Value, Utf8String>);
     type Error = io::Error;
 
-    fn decode(&mut self, buf: &mut BytesMut) -> Result<Option<(RequestId, Vec<u8>)>, io::Error> {
+    fn decode(&mut self, buf: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
         println!("buf len: {:?}", buf.len());
         println!("buf: {:#X}", buf.as_ref().as_hex());
         match self.handshaked {
@@ -26,11 +31,11 @@ impl Decoder for TarantoolCodec {
                 }
 
                 let length = read_length(&mut buf.as_ref());
-                println!("length: {:?}", length);
-
+                println!("length: {}", length);
+                println!("MESSAGE SIZE: {}", length+5);
                 if buf.len() == (length + 5) as usize {
                     println!("fuck");
-                    return Ok(Some((1, vec![])));
+                    return Ok(Some((1, Ok(Value::from("HAHAHA")))));
                 }
             },
             false => {
@@ -41,7 +46,17 @@ impl Decoder for TarantoolCodec {
                     let greeting = GreetingPacket::new(String::from_utf8(buf[64..108].to_vec()).unwrap(),
                                         String::from_utf8(buf[..64].to_vec()).unwrap());
                     println!("greeting: {:?}", greeting);
-                    return Ok(Some((1, buf[..].to_vec())))
+                    let scramble = scramble(greeting.salt, "test".into());
+                    let id = 0;
+                    let header = header(RequestTypeKey::Auth, id);
+                    let body = build_auth_body("test", &scramble);
+                    let mut encoded_request_length = [0x00, 0x00, 0x00, 0x00, 0x00];
+                    write_u32(&mut &mut encoded_request_length[..],
+                              (header.len() + body.len()) as u32)
+                        .ok()
+                        .unwrap();
+                    let request = [&encoded_request_length[..], &header[..], &body[..]].concat();
+                    return Ok(Some((0, Ok(read_value(&mut &request[..]).unwrap()))))
                 }
             }
         }
@@ -54,15 +69,18 @@ impl Encoder for TarantoolCodec {
     type Error = io::Error;
 
     fn encode(&mut self, msg: (RequestId, Vec<u8>), buf: &mut BytesMut) -> io::Result<()> {
-        let len = 4 + buf.len() + 1;
-        buf.reserve(len);
-
-        let (request_id, msg) = msg;
-
-        buf.put_u32::<BigEndian>(request_id as u32);
-        buf.put_slice(&msg[..]);
-        buf.put_u8(b'\n');
-
+//        let len = 4 + buf.len() + 1;
+//        buf.reserve(len);
+//
+          let (request_id, msg) = msg;
+//
+//        buf.put_u32::<BigEndian>(request_id as u32);
+//        buf.put_slice(&msg[..]);
+//        buf.put_u8(b'\n');
+        buf.put_slice(&build_request(&Insert {
+            space: 512,
+            keys: vec![],
+        }, request_id)[..]);
         Ok(())
     }
 }

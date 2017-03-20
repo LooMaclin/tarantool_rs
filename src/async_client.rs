@@ -16,47 +16,37 @@ use std::borrow::Cow;
 use greeting_packet::GreetingPacket;
 use utils::{header, build_request, process_response};
 use std::str::FromStr;
+use insert::Insert;
 
-pub struct AsyncClient<'a> {
-    state: State<'a>,
+pub struct AsyncClient<T> {
+    data: T,
     inner: Validate<ClientService<TcpStream, TarantoolProto>>,
 }
 
-impl<'a> AsyncClient<'a> {
-    pub fn auth<S>(address: S, user: S, password: S, handle: &Handle) -> Box<Future<Item = AsyncClient, Error = io::Error>>
+impl <T> AsyncClient<T>{
+    pub fn auth<'a, S>(address: S, user: S, password: S, handle: &Handle) -> Box<Future<Item = AsyncClient<T>, Error = io::Error>>
     where S: Into<Cow<'a, str>> {
         let addr = SocketAddr::from_str(address.into().as_ref()).unwrap();
         let ret = TcpClient::new(TarantoolProto)
             .connect(&addr, handle)
             .map(|client_service| {
                 let validate = Validate { inner: client_service};
-                AsyncClient { inner: validate,
-                    state:
-                State {
-                    address: "abc".into(),
-                    user: "abc".into(),
-                    password: "abc".into(),
-                    greeting_packet: GreetingPacket::new("", ""),
-                    request_id: 0,
-                } }
+                AsyncClient { inner: validate,  data: Insert {
+                    space: 512,
+                    keys: vec![],
+                }}
             });
         Box::new(ret)
     }
-
-    pub fn request<I>(&mut self, request_body: &I) -> Box<Future<Item = Value, Error = Utf8String>>
-        where I: Action
-    {
-        let request = build_request(request_body, self.state.get_id());
-        let response = self.call(request);
-        response
-    }
 }
 
-impl<'a> Service for AsyncClient<'a> {
-    type Request = Vec<u8>;
-    type Response = Value;
-    type Error = Utf8String;
-    // For simplicity, box the future.
+impl<T> Service for AsyncClient<T>
+    where T: Service,
+          T::Request: Action {
+    type Request = T::Request;
+    type Response = Result<Value, Utf8String>;
+    type Error = io::Error;
+
     type Future = Box<Future<Item = Self::Response, Error = Self::Error>>;
 
     fn call(&self, req: Self::Request) -> Self::Future {

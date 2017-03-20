@@ -88,7 +88,7 @@ impl<'a> SyncClient<'a> {
     pub fn request<I>(&mut self, request_body: &I) -> Result<Value, Utf8String>
         where I: Action
     {
-        let request = build_request(request_body, self.state.get_id() as u32);
+        let request = build_request(request_body, self.state.get_id());
         let response = SyncClient::get_response(&request, &mut self.descriptor);
         process_response(&response)
     }
