@@ -6,13 +6,14 @@ use utils::read_length;
 use hex_slice::AsHex;
 use greeting_packet::GreetingPacket;
 use rmpv::{Utf8String, Value};
-use utils::{build_request, header, build_auth_body, scramble};
+use utils::{build_request, header, build_auth_body, scramble, get_response};
 use request_type_key::RequestTypeKey;
 use rmp::encode::write_u32;
 use insert::Insert;
 use rmpv::decode::read_value;
 use action::Action;
 use std::marker::PhantomData;
+use std::io::{Error, ErrorKind};
 
 pub struct TarantoolCodec<A> where A: Action {
     pub _phantom: PhantomData<A>,
@@ -24,11 +25,10 @@ impl <A> Decoder for TarantoolCodec<A> where A: Action {
     type Error = io::Error;
 
     fn decode(&mut self, buf: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
-        println!("buf len: {:?}", buf.len());
-        println!("buf: {:#X}", buf.as_ref().as_hex());
+        println!("Incoming buffer (size: {}): {:#X}", buf.len(), buf.as_ref().as_hex());
         match self.handshaked {
             true => {
-
+                println!("FUCK THE SYSTYEM");
                 if buf.len() < 5 {
                     return Ok(None);
                 }
@@ -44,11 +44,11 @@ impl <A> Decoder for TarantoolCodec<A> where A: Action {
             false => {
                 if buf.len() < 128 {
                     return Ok(None)
-                } else if buf.len() == 128 {
+                } else {
                     self.handshaked = true;
                     let greeting = GreetingPacket::new(String::from_utf8(buf[64..108].to_vec()).unwrap(),
                                         String::from_utf8(buf[..64].to_vec()).unwrap());
-                    println!("greeting: {:?}", greeting);
+                    println!("Greeting: {:?}", greeting);
                     let scramble = scramble(greeting.salt, "test".into());
                     let id = 0;
                     let header = header(RequestTypeKey::Auth, id);
@@ -59,7 +59,10 @@ impl <A> Decoder for TarantoolCodec<A> where A: Action {
                         .ok()
                         .unwrap();
                     let request = [&encoded_request_length[..], &header[..], &body[..]].concat();
-                    return Ok(Some((0, Ok(read_value(&mut &request[..]).unwrap()))))
+                    match get_response(&request, &mut &buf[..]).body {
+                        Some(data) => return Err(Error::new(ErrorKind::PermissionDenied, String::from_utf8(data).unwrap())),
+                        None => return Ok(Some((0, Ok(Value::from("Auth completed."))))),
+                    }
                 }
             }
         }
@@ -72,17 +75,10 @@ impl<A> Encoder for TarantoolCodec<A> where A: Action {
     type Error = io::Error;
 
     fn encode(&mut self, msg: (RequestId, A), buf: &mut BytesMut) -> io::Result<()> {
-//        let len = 4 + buf.len() + 1;
-//        buf.reserve(len);
-//
-          let (request_id, msg) = msg;
-//
-//        buf.put_u32::<BigEndian>(request_id as u32);
-//        buf.put_slice(&msg[..]);
-//        buf.put_u8(b'\n');
-        let body = msg.get();
-        buf.reserve(body.1.len());
-        buf.put_slice(&body.1[..]);
+        let (request_id, msg) = msg;
+        let request = build_request(&msg, request_id);
+        buf.reserve(request.len());
+        buf.put_slice(&request);
         Ok(())
     }
 }

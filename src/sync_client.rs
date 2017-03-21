@@ -40,7 +40,8 @@ use action::Action;
 use {TARANTOOL_SPACE_ID, TARANTOOL_INDEX_ID, TARANTOOL_SPACE_ID_KEY_NUMBER,
      TARANTOOL_INDEX_ID_KEY_NUMBER, CHAP_SHA_1};
 use {Utf8String, Integer};
-use utils::{header, serialize, process_response, scramble, build_auth_body, build_request, read_length, read_payload};
+use utils::{header, serialize, process_response, scramble, build_auth_body, build_request,
+            read_length, read_payload, get_response};
 use state::State;
 
 #[derive(Debug)]
@@ -77,7 +78,8 @@ impl<'a> SyncClient<'a> {
             .ok()
             .unwrap();
         let request = [&encoded_request_length[..], &header[..], &body[..]].concat();
-        match SyncClient::get_response(&request, &mut tarantool.descriptor).body {
+        let write_result = tarantool.descriptor.write(&request);
+        match get_response(&request, &mut tarantool.descriptor).body {
             Some(data) => Err(String::from_utf8(data).unwrap()),
             None => Ok(tarantool),
         }
@@ -89,30 +91,12 @@ impl<'a> SyncClient<'a> {
         where I: Action
     {
         let request = build_request(request_body, self.state.get_id());
-        let response = SyncClient::get_response(&request, &mut self.descriptor);
+        let write_result = self.descriptor.write(&request);
+        let response = get_response(&request, &mut self.descriptor);
         process_response(&response)
     }
 
-    pub fn get_response<I>(request: &[u8], mut descriptor: &mut I) -> Response
-        where I: Write + Read
-    {
-        let write_result = descriptor.write(&request);
-        let response_length = read_length(&mut descriptor);
-        let payload = read_payload(response_length, &mut descriptor);
-        let header = Header {
-            code: BigEndian::read_u32(&payload[3..8]),
-            sync: BigEndian::read_u64(&payload[9..17]),
-            schema_id: BigEndian::read_u32(&payload[19..23]),
-        };
-        Response {
-            header: header,
-            body: if payload.len() > 24 {
-                Some(payload[23..payload.len()].to_vec())
-            } else {
-                Option::None
-            },
-        }
-    }
+
 
     pub fn fetch_space_id<I>(&mut self, space_name: I) -> Result<u64, String>
         where I: Into<Utf8String>

@@ -36,6 +36,27 @@ pub fn build_request<I>(request_body: &I, request_id: u64) -> Vec<u8>
     request
 }
 
+pub fn get_response<I>(request: &[u8], mut descriptor: &mut I) -> Response
+    where I: Read
+{
+
+    let response_length = read_length(&mut descriptor);
+    let payload = read_payload(response_length, &mut descriptor);
+    let header = Header {
+        code: BigEndian::read_u32(&payload[3..8]),
+        sync: BigEndian::read_u64(&payload[9..17]),
+        schema_id: BigEndian::read_u32(&payload[19..23]),
+    };
+    Response {
+        header: header,
+        body: if payload.len() > 24 {
+            Some(payload[23..payload.len()].to_vec())
+        } else {
+            Option::None
+        },
+    }
+}
+
 
 pub fn process_response(response: &Response) -> Result<Value, Utf8String> {
     let data = response.body
