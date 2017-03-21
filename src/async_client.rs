@@ -30,7 +30,7 @@ impl <T: Action> AsyncClient<T> {
         let ret = TcpClient::new(TarantoolProto)
             .connect(&addr, handle)
             .map(|client_service| {
-                let validate = Validate { inner: client_service };
+                let validate = Validate { inner: client_service, action: PhantomData };
                 AsyncClient { inner: validate }
             });
         Box::new(ret)
@@ -45,7 +45,7 @@ impl <T: Action> Service for AsyncClient<T>
 
     type Future = Box<Future<Item = Self::Response, Error = Self::Error>>;
 
-    fn call(&self, req: Self::Request) -> Self::Future where T:Action {
-        self.inner.call(req.get())
+    fn call(&self, req: Self::Request) -> Self::Future {
+        self.inner.call(req)
     }
 }

@@ -3,14 +3,16 @@ use futures::Future;
 use tokio_service::{Service, NewService};
 use rmpv::{Value, Utf8String};
 use action::Action;
+use std::marker::PhantomData;
 
-pub struct Validate<T, K> {
-    pub inner: T,
+pub struct Validate<S, A> {
+    pub inner: S,
+    pub action: PhantomData<A>,
 }
 
-impl<T, A> Service for Validate<T, A>
-    where T: Service<Request =A, Response = Result<Value, Utf8String>, Error = io::Error>,
-          T::Future: 'static,
+impl<S, A> Service for Validate<S, A>
+    where S: Service<Request = A, Response = Result<Value, Utf8String>, Error = io::Error>,
+          S::Future: 'static,
           A: Action
 {
     type Request = A;
@@ -23,19 +25,19 @@ impl<T, A> Service for Validate<T, A>
     }
 }
 
-impl<T, A> NewService for Validate<T, A>
-    where T: NewService<Request =A, Response = Result<Value, Utf8String>, Error = io::Error>,
+impl<S, A> NewService for Validate<S, A>
+    where S: NewService<Request =A, Response = Result<Value, Utf8String>, Error = io::Error>,
           A: Action,
-          <T::Instance as Service>::Future: 'static,
+          <S::Instance as Service>::Future: 'static,
 
 {
     type Request = A;
     type Response = Result<Value, Utf8String>;
     type Error = io::Error;
-    type Instance = Validate<T::Instance, A>;
+    type Instance = Validate<S::Instance, A>;
 
     fn new_service(&self) -> io::Result<Self::Instance> {
         let inner = try!(self.inner.new_service());
-        Ok(Validate { inner: inner })
+        Ok(Validate { inner: inner, action: Self::Request })
     }
 }

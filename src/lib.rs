@@ -1,3 +1,5 @@
+#![feature(type_ascription)]
+
 extern crate rmpv;
 extern crate rmp_serde;
 extern crate serde;
