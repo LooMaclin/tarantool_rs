@@ -20,7 +20,7 @@ impl<S, A> Service for Validate<S, A>
     type Error = io::Error;
     type Future = Box<Future<Item = Result<Value, Utf8String>, Error = io::Error>>;
 
-    fn call(&self, req: Self::Response) -> Self::Future {
+    fn call(&self, req: A) -> Self::Future {
         Box::new(self.inner.call(req).and_then(|resp| Ok(resp)))
     }
 }
@@ -38,6 +38,6 @@ impl<S, A> NewService for Validate<S, A>
 
     fn new_service(&self) -> io::Result<Self::Instance> {
         let inner = try!(self.inner.new_service());
-        Ok(Validate { inner: inner, action: Self::Request })
+        Ok(Validate { inner: inner, action: PhantomData })
     }
 }
