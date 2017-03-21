@@ -11,12 +11,15 @@ use request_type_key::RequestTypeKey;
 use rmp::encode::write_u32;
 use insert::Insert;
 use rmpv::decode::read_value;
+use action::Action;
+use std::marker::PhantomData;
 
-pub struct TarantoolCodec {
+pub struct TarantoolCodec<A> where A: Action {
+    _phantom: PhantomData<A>,
     pub handshaked: bool,
 }
 
-impl Decoder for TarantoolCodec {
+impl <A> Decoder for TarantoolCodec<A> where A: Action {
     type Item = (RequestId, Result<Value, Utf8String>);
     type Error = io::Error;
 
@@ -64,11 +67,11 @@ impl Decoder for TarantoolCodec {
     }
 }
 
-impl Encoder for TarantoolCodec {
-    type Item = (RequestId, Vec<u8>);
+impl<A> Encoder for TarantoolCodec<A> where A: Action {
+    type Item = (RequestId, A);
     type Error = io::Error;
 
-    fn encode(&mut self, msg: (RequestId, Vec<u8>), buf: &mut BytesMut) -> io::Result<()> {
+    fn encode(&mut self, msg: (RequestId, A), buf: &mut BytesMut) -> io::Result<()> {
 //        let len = 4 + buf.len() + 1;
 //        buf.reserve(len);
 //
@@ -77,10 +80,10 @@ impl Encoder for TarantoolCodec {
 //        buf.put_u32::<BigEndian>(request_id as u32);
 //        buf.put_slice(&msg[..]);
 //        buf.put_u8(b'\n');
-        buf.put_slice(&build_request(&Insert {
+        buf.put_slice((RequestTypeKey::Insert, &Insert {
             space: 512,
             keys: vec![],
-        }, request_id)[..]);
+        }.get()));
         Ok(())
     }
 }

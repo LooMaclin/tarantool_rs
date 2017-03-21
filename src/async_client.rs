@@ -19,15 +19,17 @@ use std::str::FromStr;
 use insert::Insert;
 use std::marker::PhantomData;
 
-pub struct AsyncClient<T> {
-    inner: Validate<ClientService<TcpStream, TarantoolProto>, T>,
+pub struct AsyncClient<A> where A: Action + 'static {
+    inner: Validate<ClientService<TcpStream, TarantoolProto<A>>, A>,
 }
 
-impl <T: Action> AsyncClient<T> {
-    pub fn auth<'a, S>(address: S, user: S, password: S, handle: &Handle) -> Box<Future<Item = AsyncClient<T>, Error = io::Error>>
+impl <A: Action> AsyncClient<A> {
+    pub fn auth<'a, S>(address: S, user: S, password: S, handle: &Handle) -> Box<Future<Item = AsyncClient<A>, Error = io::Error>>
         where S: Into<Cow<'a, str>> {
         let addr = SocketAddr::from_str(address.into().as_ref()).unwrap();
-        let ret = TcpClient::new(TarantoolProto)
+        let ret = TcpClient::new(TarantoolProto {
+            _phantom: PhantomData
+        })
             .connect(&addr, handle)
             .map(|client_service| {
                 let validate = Validate { inner: client_service, action: PhantomData };
@@ -37,9 +39,9 @@ impl <T: Action> AsyncClient<T> {
     }
 }
 
-impl <T: Action> Service for AsyncClient<T>
+impl <A> Service for AsyncClient<A> where A: Action
 {
-    type Request = T;
+    type Request = A;
     type Response = Result<Value, Utf8String>;
     type Error = io::Error;
 
