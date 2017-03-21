@@ -80,10 +80,9 @@ impl<A> Encoder for TarantoolCodec<A> where A: Action {
 //        buf.put_u32::<BigEndian>(request_id as u32);
 //        buf.put_slice(&msg[..]);
 //        buf.put_u8(b'\n');
-        buf.put_slice((RequestTypeKey::Insert, &Insert {
-            space: 512,
-            keys: vec![],
-        }.get()));
+        let body = msg.get();
+        buf.reserve(body.1.len());
+        buf.put_slice(&body.1[..]);
         Ok(())
     }
 }
