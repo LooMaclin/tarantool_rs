@@ -13,7 +13,7 @@ impl<T, K> Service for Validate<T,K>
           T::Future: 'static,
          K: Action
 {
-    type Request = Vec<u8>;
+    type Request = K;
     type Response = Result<Value, Utf8String>;
     type Error = io::Error;
     type Future = Box<Future<Item = Result<Value, Utf8String>, Error = io::Error>>;
