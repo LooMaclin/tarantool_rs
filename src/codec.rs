@@ -15,7 +15,7 @@ use action::Action;
 use std::marker::PhantomData;
 
 pub struct TarantoolCodec<A> where A: Action {
-    _phantom: PhantomData<A>,
+    pub _phantom: PhantomData<A>,
     pub handshaked: bool,
 }
 

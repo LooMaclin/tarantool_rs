@@ -23,7 +23,7 @@ fn main() {
     let handle = core.handle();
 
     core.run(AsyncClient::auth("127.0.0.1:3301", "test", "test", &handle).and_then(|mut client| {
-            client.call(&Insert {
+            client.call(Insert {
                 space: 512,
                 keys: vec![Value::from(23)]
             }).and_then(|result| {
