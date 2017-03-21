@@ -8,12 +8,12 @@ pub struct Validate<T, K> {
     pub inner: T,
 }
 
-impl<T, K> Service for Validate<T,K>
-    where T: Service<Request = K, Response = Result<Value, Utf8String>, Error = io::Error>,
+impl<T, A> Service for Validate<T, A>
+    where T: Service<Request =A, Response = Result<Value, Utf8String>, Error = io::Error>,
           T::Future: 'static,
-         K: Action
+          A: Action
 {
-    type Request = K;
+    type Request = A;
     type Response = Result<Value, Utf8String>;
     type Error = io::Error;
     type Future = Box<Future<Item = Result<Value, Utf8String>, Error = io::Error>>;
@@ -23,16 +23,16 @@ impl<T, K> Service for Validate<T,K>
     }
 }
 
-impl<T, K> NewService for Validate<T, K>
-    where T: NewService<Request = K, Response = Result<Value, Utf8String>, Error = io::Error>,
-          K: Action,
-<T::Instance as Service>::Future: 'static,
+impl<T, A> NewService for Validate<T, A>
+    where T: NewService<Request =A, Response = Result<Value, Utf8String>, Error = io::Error>,
+          A: Action,
+          <T::Instance as Service>::Future: 'static,
 
 {
-    type Request = K;
+    type Request = A;
     type Response = Result<Value, Utf8String>;
     type Error = io::Error;
-    type Instance = Validate<T::Instance, K>;
+    type Instance = Validate<T::Instance, A>;
 
     fn new_service(&self) -> io::Result<Self::Instance> {
         let inner = try!(self.inner.new_service());
