@@ -79,7 +79,7 @@ impl<'a> SyncClient<'a> {
             .unwrap();
         let request = [&encoded_request_length[..], &header[..], &body[..]].concat();
         let write_result = tarantool.descriptor.write(&request);
-        match get_response(&request, &mut tarantool.descriptor).body {
+        match get_response(&mut tarantool.descriptor).body {
             Some(data) => Err(String::from_utf8(data).unwrap()),
             None => Ok(tarantool),
         }
@@ -92,7 +92,7 @@ impl<'a> SyncClient<'a> {
     {
         let request = build_request(request_body, self.state.get_id());
         let write_result = self.descriptor.write(&request);
-        let response = get_response(&request, &mut self.descriptor);
+        let response = get_response(&mut self.descriptor);
         process_response(&response)
     }
 

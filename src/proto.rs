@@ -26,10 +26,7 @@ impl<T: AsyncRead + AsyncWrite + 'static, A: 'static> ClientProto<T> for Taranto
 
     fn bind_transport(&self, io: T) -> Self::BindTransport {
         Ok(io.framed(TarantoolCodec {
-            _phantom: PhantomData,
-            handshaked: false,
-            auth_request: None,
-            auth_request_sended: false,
+            _phantom: PhantomData
         }))
     }
 }

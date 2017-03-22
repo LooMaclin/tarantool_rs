@@ -36,7 +36,7 @@ pub fn build_request<I>(request_body: &I, request_id: u64) -> Vec<u8>
     request
 }
 
-pub fn get_response<I>(request: &[u8], mut descriptor: &mut I) -> Response
+pub fn get_response<I>(mut descriptor: &mut I) -> Response
     where I: Read
 {
 
