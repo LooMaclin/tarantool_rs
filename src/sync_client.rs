@@ -40,7 +40,8 @@ use action::Action;
 use {TARANTOOL_SPACE_ID, TARANTOOL_INDEX_ID, TARANTOOL_SPACE_ID_KEY_NUMBER,
      TARANTOOL_INDEX_ID_KEY_NUMBER, CHAP_SHA_1};
 use {Utf8String, Integer};
-use utils::{header, serialize, process_response, scramble, build_auth_body, build_request,
+use auth::Auth;
+use utils::{header, serialize, process_response, scramble, build_request,
             read_length, read_payload, get_response};
 use state::State;
 
@@ -69,15 +70,10 @@ impl<'a> SyncClient<'a> {
             descriptor: stream,
         };
         let scramble = scramble(&*tarantool.state.greeting_packet.salt, &*tarantool.state.password);
-        let id = 0;
-        let header = header(RequestTypeKey::Auth, id);
-        let body = build_auth_body(tarantool.state.user.clone(), &scramble);
-        let mut encoded_request_length = [0x00, 0x00, 0x00, 0x00, 0x00];
-        write_u32(&mut &mut encoded_request_length[..],
-                  (header.len() + body.len()) as u32)
-            .ok()
-            .unwrap();
-        let request = [&encoded_request_length[..], &header[..], &body[..]].concat();
+        let request =  build_request(&Auth {
+            username: user.into(),
+            scramble: scramble,
+        }, 0);
         let write_result = tarantool.descriptor.write(&request);
         match get_response(&mut tarantool.descriptor).body {
             Some(data) => Err(String::from_utf8(data).unwrap()),

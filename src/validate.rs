@@ -4,6 +4,7 @@ use tokio_service::{Service, NewService};
 use rmpv::{Value, Utf8String};
 use action::Action;
 use std::marker::PhantomData;
+use async_response::AsyncResponse;
 
 pub struct Validate<S, A> {
     pub inner: S,
@@ -11,14 +12,14 @@ pub struct Validate<S, A> {
 }
 
 impl<S, A> Service for Validate<S, A>
-    where S: Service<Request = A, Response = Result<Value, Utf8String>, Error = io::Error>,
+    where S: Service<Request = A, Response = AsyncResponse, Error = io::Error>,
           S::Future: 'static,
           A: Action
 {
     type Request = A;
-    type Response = Result<Value, Utf8String>;
+    type Response = AsyncResponse;
     type Error = io::Error;
-    type Future = Box<Future<Item = Result<Value, Utf8String>, Error = io::Error>>;
+    type Future = Box<Future<Item = AsyncResponse, Error = io::Error>>;
 
     fn call(&self, req: A) -> Self::Future {
         Box::new(self.inner.call(req).and_then(|resp| Ok(resp)))
@@ -26,13 +27,13 @@ impl<S, A> Service for Validate<S, A>
 }
 
 impl<S, A> NewService for Validate<S, A>
-    where S: NewService<Request =A, Response = Result<Value, Utf8String>, Error = io::Error>,
+    where S: NewService<Request =A, Response = AsyncResponse, Error = io::Error>,
           A: Action,
           <S::Instance as Service>::Future: 'static,
 
 {
     type Request = A;
-    type Response = Result<Value, Utf8String>;
+    type Response = AsyncResponse;
     type Error = io::Error;
     type Instance = Validate<S::Instance, A>;
 

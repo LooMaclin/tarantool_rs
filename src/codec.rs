@@ -6,7 +6,7 @@ use utils::read_length;
 use hex_slice::AsHex;
 use greeting_packet::GreetingPacket;
 use rmpv::{Utf8String, Value};
-use utils::{build_request, header, build_auth_body, scramble, get_response};
+use utils::{build_request, header, scramble, get_response};
 use request_type_key::RequestTypeKey;
 use rmp::encode::write_u32;
 use insert::Insert;
@@ -14,28 +14,40 @@ use rmpv::decode::read_value;
 use action::Action;
 use std::marker::PhantomData;
 use std::io::{Error, ErrorKind};
+use async_response::AsyncResponse;
 
 pub struct TarantoolCodec<A> where A: Action {
-    pub _phantom: PhantomData<A>
+    pub _phantom: PhantomData<A>,
+    pub tarantool_handshake_received: bool,
 }
 
 impl <A> Decoder for TarantoolCodec<A> where A: Action {
-    type Item = (RequestId, Result<Value, Utf8String>);
+    type Item = (RequestId, AsyncResponse);
     type Error = io::Error;
 
     fn decode(&mut self, buf: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
         println!("=== START DECODE ===");
         println!("Incoming buffer before (size: {}): {:#X} \n", buf.len(), buf.as_ref().as_hex());
-                if buf.len() < 5 {
-                    return Ok(None);
-                } else {
-                    let length = read_length(&mut buf.as_ref());
-                    println!("LENGTH: {}", length);
-                    if buf.len() == (length + 5) as usize {
-                        buf.split_to(length as usize +5);
-                        return Ok(Some((1, Ok(Value::from("HAHAHA")))));
-                    }
+        if self.tarantool_handshake_received {
+            if buf.len() < 5 {
+                return Ok(None);
+            } else {
+                let length = read_length(&mut buf.as_ref());
+                println!("Object length: {}", length);
+                if buf.len() == (length + 5) as usize {
+                    let incoming_object = buf.split_to(length as usize +5);
+                    return Ok(Some((1, AsyncResponse::Normal(Ok(Value::from("HAHAHA"))))));
                 }
+            }
+        } else {
+            if buf.len() == 128 {
+                let raw_greeting = buf.split_to(128);
+                let salt = raw_greeting[64..108].to_vec();
+                self.tarantool_handshake_received = true;
+                return Ok(Some((0, AsyncResponse::Handshake(salt))))
+            }
+        }
+
         println!("Incoming buffer after (size: {}): {:#X} \n", buf.len(), buf.as_ref().as_hex());
         println!("=== END DECODE ===");
         Ok(None)

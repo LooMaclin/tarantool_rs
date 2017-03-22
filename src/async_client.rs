@@ -10,7 +10,6 @@ use tokio_proto::TcpClient;
 use tokio_service::Service;
 use rmpv::{Value, Utf8String};
 use action::Action;
-use utils::build_auth_body;
 use state::State;
 use std::borrow::Cow;
 use greeting_packet::GreetingPacket;
@@ -18,6 +17,7 @@ use utils::{header, build_request, process_response};
 use std::str::FromStr;
 use insert::Insert;
 use std::marker::PhantomData;
+use async_response::AsyncResponse;
 
 pub struct AsyncClient<A> where A: Action + 'static {
     inner: Validate<ClientService<TcpStream, TarantoolProto<A>>, A>,
@@ -42,7 +42,7 @@ impl <A: Action> AsyncClient<A> {
 impl <A> Service for AsyncClient<A> where A: Action
 {
     type Request = A;
-    type Response = Result<Value, Utf8String>;
+    type Response = AsyncResponse;
     type Error = io::Error;
 
     type Future = Box<Future<Item = Self::Response, Error = Self::Error>>;

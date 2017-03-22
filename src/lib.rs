@@ -54,6 +54,8 @@ pub mod proto;
 pub mod validate;
 pub mod utils;
 pub mod state;
+pub mod async_response;
+pub mod auth;
 
 pub use rmpv::Value;
 pub use sync_client::SyncClient;

@@ -132,21 +132,6 @@ pub fn scramble<'a, S>(salt: S, password: S) -> Vec<u8>
     (0..20).into_iter().map(|n| digest_1[n] ^ digest_3[n]).collect::<Vec<u8>>()
 }
 
-pub fn build_auth_body<'a, S>(username: S, scramble: &[u8]) -> Vec<u8>
-    where S: Into<Cow<'a, str>>
-{
-    let mut encoded_username = Vec::new();
-    write_str(&mut encoded_username, &username.into());
-    [&[0x82][..],
-     &[Code::UserName as u8][..],
-     &encoded_username[..],
-     &[Code::Tuple as u8, 0x92][..],
-     &CHAP_SHA_1[..],
-     &[0xC4, 0x14][..],
-     &scramble[..]]
-            .concat()
-}
-
 #[cfg(test)]
 mod test {
 
