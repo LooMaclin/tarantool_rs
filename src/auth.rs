@@ -15,17 +15,21 @@ use std::borrow::Cow;
 
 #[derive(Debug)]
 pub struct Auth<'a> {
-    pub username: Cow<'a,str>,
+    pub username: Cow<'a, str>,
     pub scramble: Vec<u8>,
 }
 
-impl <'a> Action for Auth<'a> {
+impl<'a> Action for Auth<'a> {
     fn get(&self) -> (RequestTypeKey, Vec<u8>) {
-        (RequestTypeKey::Auth, serialize(Value::Map(vec![
-            (Value::from(Code::UserName as u8), Value::from(self.username)),
-            (Value::from(Code::Tuple as u8), Value::from(vec![
-                read_value(&mut &[&CHAP_SHA_1[..], &[0xC4, 0x14][..], &self.scramble[..]].concat()[..]).unwrap()
-            ]))
-        ])))
+        (RequestTypeKey::Auth,
+         serialize(Value::Map(vec![(Value::from(Code::UserName as u8),
+                                    Value::from(self.username)),
+                                   (Value::from(Code::Tuple as u8),
+                                    Value::from(vec![
+                read_value(&mut &[
+                    &CHAP_SHA_1[..],
+                    &[0xC4, 0x14][..],
+                    &self.scramble[..]].concat()[..]).unwrap()
+            ]))])))
     }
 }

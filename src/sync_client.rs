@@ -41,8 +41,8 @@ use {TARANTOOL_SPACE_ID, TARANTOOL_INDEX_ID, TARANTOOL_SPACE_ID_KEY_NUMBER,
      TARANTOOL_INDEX_ID_KEY_NUMBER, CHAP_SHA_1};
 use {Utf8String, Integer};
 use auth::Auth;
-use utils::{header, serialize, process_response, scramble, build_request,
-            read_length, read_payload, get_response};
+use utils::{header, serialize, process_response, scramble, build_request, read_length,
+            read_payload, get_response};
 use state::State;
 
 #[derive(Debug)]
@@ -63,17 +63,21 @@ impl<'a> SyncClient<'a> {
                 address: address.into(),
                 user: user.into(),
                 password: password.into(),
-                greeting_packet: GreetingPacket::new(String::from_utf8(buf[64..108].to_vec()).unwrap(),
-                                                     String::from_utf8(buf[..64].to_vec()).unwrap()),
+                greeting_packet: GreetingPacket::new(String::from_utf8(buf[64..108].to_vec())
+                                                         .unwrap(),
+                                                     String::from_utf8(buf[..64].to_vec())
+                                                         .unwrap()),
                 request_id: 0,
             },
             descriptor: stream,
         };
-        let scramble = scramble(&*tarantool.state.greeting_packet.salt, &*tarantool.state.password);
-        let request =  build_request(&Auth {
-            username: user.into(),
-            scramble: scramble,
-        }, 0);
+        let scramble = scramble(&*tarantool.state.greeting_packet.salt,
+                                &*tarantool.state.password);
+        let request = build_request(&Auth {
+                                        username: user.into(),
+                                        scramble: scramble,
+                                    },
+                                    0);
         let write_result = tarantool.descriptor.write(&request);
         match get_response(&mut tarantool.descriptor).body {
             Some(data) => Err(String::from_utf8(data).unwrap()),
@@ -98,13 +102,13 @@ impl<'a> SyncClient<'a> {
         where I: Into<Utf8String>
     {
         match self.request(&Select {
-                                space: TARANTOOL_SPACE_ID,
-                                index: TARANTOOL_SPACE_ID_KEY_NUMBER,
-                                limit: 1,
-                                offset: 0,
-                                iterator: IteratorType::Eq,
-                                keys: vec![Value::String(space_name.into())],
-                            }) {
+            space: TARANTOOL_SPACE_ID,
+            index: TARANTOOL_SPACE_ID_KEY_NUMBER,
+            limit: 1,
+            offset: 0,
+            iterator: IteratorType::Eq,
+            keys: vec![Value::String(space_name.into())],
+        }) {
             Ok(data) => {
                 println!("DATA: {:?}", data);
                 match data[0][0].as_u64() {
@@ -121,14 +125,13 @@ impl<'a> SyncClient<'a> {
               K: Into<Utf8String>
     {
         match self.request(&Select {
-                                space: TARANTOOL_INDEX_ID,
-                                index: TARANTOOL_INDEX_ID_KEY_NUMBER,
-                                limit: 1,
-                                offset: 0,
-                                iterator: IteratorType::Eq,
-                                keys: vec![Value::Integer(space_id.into()),
-                                           Value::String(index_name.into())],
-                            }) {
+            space: TARANTOOL_INDEX_ID,
+            index: TARANTOOL_INDEX_ID_KEY_NUMBER,
+            limit: 1,
+            offset: 0,
+            iterator: IteratorType::Eq,
+            keys: vec![Value::Integer(space_id.into()), Value::String(index_name.into())],
+        }) {
             Ok(data) => {
                 match data[0][1].as_u64() {
                     Some(index_id) => Ok(index_id),

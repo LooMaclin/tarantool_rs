@@ -17,11 +17,16 @@ use async_response::AsyncResponse;
 use auth::Auth;
 use std::borrow::Cow;
 
-pub struct TarantoolProto<A> where A: Action {
+pub struct TarantoolProto<A>
+    where A: Action
+{
     pub _phantom: PhantomData<A>,
 }
 
-impl<T: AsyncRead + AsyncWrite + 'static, A: 'static> ClientProto<T> for TarantoolProto<A>  where A: Action {
+impl<T, A> ClientProto<T> for TarantoolProto<A>
+    where A: Action + 'static,
+          T: AsyncRead + AsyncWrite + 'static
+{
     type Request = A;
     type Response = AsyncResponse;
     type Transport = Framed<T, TarantoolCodec<A>>;
@@ -40,17 +45,19 @@ impl<T: AsyncRead + AsyncWrite + 'static, A: 'static> ClientProto<T> for Taranto
                         println!("CLIENT: received server handshake");
                         let &(request_id, resp) = msg;
                         match resp {
-                         AsyncResponse::Handshake(handshake_data) => {
-                             Box::new(transport.send((0, Auth {
-                                 username: Cow::from("test"),
-                                 scramble: handshake_data,
-                             }))) as Self::BindTransport
-                         },
-                         AsyncResponse::Normal(_) => {
-                             println!("CLIENT: server handshake INVALID");
-                             let err = io::Error::new(io::ErrorKind::Other, "initial buffer is't [u8; 128]");
-                             Box::new(future::err(err)) as Self::BindTransport
-                         }
+                            AsyncResponse::Handshake(handshake_data) => {
+                                Box::new(transport.send((0,
+                                                         Auth {
+                                    username: Cow::from("test"),
+                                    scramble: handshake_data,
+                                }))) as Self::BindTransport
+                            }
+                            AsyncResponse::Normal(_) => {
+                                println!("CLIENT: server handshake INVALID");
+                                let err = io::Error::new(io::ErrorKind::Other,
+                                                         "initial buffer is't [u8; 128]");
+                                Box::new(future::err(err)) as Self::BindTransport
+                            }
                         }
                     }
                     _ => {

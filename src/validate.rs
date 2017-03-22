@@ -27,10 +27,9 @@ impl<S, A> Service for Validate<S, A>
 }
 
 impl<S, A> NewService for Validate<S, A>
-    where S: NewService<Request =A, Response = AsyncResponse, Error = io::Error>,
+    where S: NewService<Request = A, Response = AsyncResponse, Error = io::Error>,
           A: Action,
-          <S::Instance as Service>::Future: 'static,
-
+          <S::Instance as Service>::Future: 'static
 {
     type Request = A;
     type Response = AsyncResponse;
@@ -39,6 +38,9 @@ impl<S, A> NewService for Validate<S, A>
 
     fn new_service(&self) -> io::Result<Self::Instance> {
         let inner = try!(self.inner.new_service());
-        Ok(Validate { inner: inner, action: PhantomData })
+        Ok(Validate {
+            inner: inner,
+            action: PhantomData,
+        })
     }
 }

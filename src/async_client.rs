@@ -19,27 +19,36 @@ use insert::Insert;
 use std::marker::PhantomData;
 use async_response::AsyncResponse;
 
-pub struct AsyncClient<A> where A: Action + 'static {
+pub struct AsyncClient<A>
+    where A: Action + 'static
+{
     inner: Validate<ClientService<TcpStream, TarantoolProto<A>>, A>,
 }
 
-impl <A: Action> AsyncClient<A> {
-    pub fn auth<'a, S>(address: S, user: S, password: S, handle: &Handle) -> Box<Future<Item = AsyncClient<A>, Error = io::Error>>
-        where S: Into<Cow<'a, str>> {
+impl<A: Action> AsyncClient<A> {
+    pub fn auth<'a, S>(address: S,
+                       user: S,
+                       password: S,
+                       handle: &Handle)
+                       -> Box<Future<Item = AsyncClient<A>, Error = io::Error>>
+        where S: Into<Cow<'a, str>>
+    {
         let addr = SocketAddr::from_str(address.into().as_ref()).unwrap();
-        let ret = TcpClient::new(TarantoolProto {
-            _phantom: PhantomData
-        })
+        let ret = TcpClient::new(TarantoolProto { _phantom: PhantomData })
             .connect(&addr, handle)
             .map(|client_service| {
-                let validate = Validate { inner: client_service, action: PhantomData };
+                let validate = Validate {
+                    inner: client_service,
+                    action: PhantomData,
+                };
                 AsyncClient { inner: validate }
             });
         Box::new(ret)
     }
 }
 
-impl <A> Service for AsyncClient<A> where A: Action
+impl<A> Service for AsyncClient<A>
+    where A: Action
 {
     type Request = A;
     type Response = AsyncResponse;
