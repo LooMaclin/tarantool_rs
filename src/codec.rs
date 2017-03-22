@@ -18,6 +18,8 @@ use std::io::{Error, ErrorKind};
 pub struct TarantoolCodec<A> where A: Action {
     pub _phantom: PhantomData<A>,
     pub handshaked: bool,
+    pub auth_request_sended: bool,
+    pub auth_request: Option<Vec<u8>>,
 }
 
 impl <A> Decoder for TarantoolCodec<A> where A: Action {
@@ -45,7 +47,6 @@ impl <A> Decoder for TarantoolCodec<A> where A: Action {
                 if buf.len() < 128 {
                     return Ok(None)
                 } else {
-                    self.handshaked = true;
                     let greeting = GreetingPacket::new(String::from_utf8(buf[64..108].to_vec()).unwrap(),
                                         String::from_utf8(buf[..64].to_vec()).unwrap());
                     println!("Greeting: {:?}", greeting);
@@ -59,10 +60,7 @@ impl <A> Decoder for TarantoolCodec<A> where A: Action {
                         .ok()
                         .unwrap();
                     let request = [&encoded_request_length[..], &header[..], &body[..]].concat();
-                    match get_response(&request, &mut &buf[..]).body {
-                        Some(data) => return Err(Error::new(ErrorKind::PermissionDenied, String::from_utf8(data).unwrap())),
-                        None => return Ok(Some((0, Ok(Value::from("Auth completed."))))),
-                    }
+                    self.auth_request = Some(request)
                 }
             }
         }
@@ -75,10 +73,30 @@ impl<A> Encoder for TarantoolCodec<A> where A: Action {
     type Error = io::Error;
 
     fn encode(&mut self, msg: (RequestId, A), buf: &mut BytesMut) -> io::Result<()> {
-        let (request_id, msg) = msg;
-        let request = build_request(&msg, request_id);
-        buf.reserve(request.len());
-        buf.put_slice(&request);
-        Ok(())
+        println!("=== ENCODE ===");
+        match self.handshaked {
+            true => {
+                println!("HANDSHAKED : TRUE");
+                let (request_id, msg) = msg;
+                let request = build_request(&msg, request_id);
+                buf.reserve(request.len());
+                buf.put_slice(&request);
+                Ok(())
+            },
+            false => {
+                println!("HANDSHAKED : FALSE");
+                if let Some(ref request_data) = self.auth_request {
+                    match get_response(&request_data, &mut &buf[..]).body {
+                        Some(data) => return Err(Error::new(ErrorKind::PermissionDenied, String::from_utf8(data).unwrap())),
+                        None => {
+                            self.handshaked = true;
+                            return Ok(())
+                        },
+                    }
+                }
+                Ok(())
+            }
+        }
+
     }
 }

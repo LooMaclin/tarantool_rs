@@ -28,6 +28,8 @@ impl<T: AsyncRead + AsyncWrite + 'static, A: 'static> ClientProto<T> for Taranto
         Ok(io.framed(TarantoolCodec {
             _phantom: PhantomData,
             handshaked: false,
+            auth_request: None,
+            auth_request_sended: false,
         }))
     }
 }
