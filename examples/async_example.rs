@@ -27,7 +27,7 @@ fn main() {
                 space: 512,
                 keys: vec![Value::from(23)]
             }).and_then(|result| {
-                println!("RESUTL RESUTL: {:?}", result);
+                println!("Insert result: {:?}", result);
                 Ok(())
             })
         }))
