@@ -33,11 +33,8 @@ impl<T: AsyncRead + AsyncWrite + 'static, A: 'static> ClientProto<T> for Taranto
             tarantool_handshake_received: false,
         });
         let handshake = transport.into_future()
-            // If the transport errors out, we don't care about the transport
-            // anymore, so just keep the error
             .map_err(|(e, _)| e)
             .and_then(|(line, transport)| {
-                // A line has been received, check to see if it is the handshake
                 match line {
                     Some(ref msg) => {
                         println!("CLIENT: received server handshake");
