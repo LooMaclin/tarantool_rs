@@ -26,7 +26,7 @@ pub fn build_request(request_body: ActionType, request_id: u64) -> Vec<u8>
     match request_body {
         ActionType::Auth(auth) => {
             let (request_type, body) = auth.get();
-            let header = header(request_type, request_id+1);
+            let header = header(request_type, request_id);
             debug!("Request header: {:#X}", header.as_hex());
             debug!("Request body: {:#X}", body.as_hex());
             let mut encoded_request_length = [0x00, 0x00, 0x00, 0x00, 0x00];

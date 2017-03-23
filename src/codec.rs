@@ -44,10 +44,11 @@ impl Decoder for TarantoolCodec
                 if buf.len() >= length as usize + 5 {
                     let mut incoming_object = buf.split_to(length as usize + 5);
                     println!("incoming object (size: {}): {:#X}", incoming_object.len(), incoming_object.as_hex());
-                    let deserialized_incoming_object = get_response(&mut incoming_object.as_ref());
-                    let request_id = deserialized_incoming_object.header.sync;
-                    println!("Deserialized incoming object: {:?}", deserialized_incoming_object);
-                    let deserialized_incoming_object = process_response(&deserialized_incoming_object);
+                    let raw_response_with_header = get_response(&mut incoming_object.as_ref());
+                    let request_id = raw_response_with_header.header.sync;
+                    println!("NORMAL REQUEST ID: {}", request_id);
+                    println!("Deserialized raw response object: {:?}", raw_response_with_header);
+                    let deserialized_incoming_object = process_response(&raw_response_with_header);
                     println!("Deserialized incoming object: {:?}", deserialized_incoming_object);
                     return Ok(Some((request_id, AsyncResponse::Normal(deserialized_incoming_object))));
                 }
@@ -81,7 +82,8 @@ impl Encoder for TarantoolCodec
         println!("Incoming buffer before (size: {}): {:#X} \n",
                  buf.len(),
                  buf.as_ref().as_hex());
-        let (request_id, msg) = msg;
+        let (mut request_id, msg) = msg;
+        request_id += 1;
         let request = build_request(msg, request_id);
         buf.reserve(request.len());
         buf.put_slice(&request);

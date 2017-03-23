@@ -44,7 +44,7 @@ impl<T> ClientProto<T> for TarantoolProto
                         match resp {
                             &AsyncResponse::Handshake(ref handshake_data) => {
                                 println!("Handshaked data: {:#X}", handshake_data.as_hex());
-                                Box::new(transport.send((0,
+                                Box::new(transport.send((request_id,
                                                          ActionType::Auth(Auth {
                                     username: String::from("test"),
                                     scramble: handshake_data.clone(),
