@@ -26,11 +26,18 @@ fn main() {
     core.run(AsyncClient::auth("127.0.0.1:3301", "test", "test", &handle).and_then(|mut client| {
             client.call(ActionType::Insert(Insert {
                 space: 512,
-                keys: vec![Value::from(1)]
+                keys: vec![Value::from(12233), Value::from("ROLLING STONES"), Value::from(2025)]
             })).and_then(|result| {
                 println!("Insert result: {:?}", result);
                 Ok(())
-            })
+            });
+        client.call(ActionType::Insert(Insert {
+            space: 512,
+            keys: vec![Value::from(12233), Value::from("ROLLING STONES"), Value::from(2025)]
+        })).and_then(|result| {
+            println!("Insert result: {:?}", result);
+            Ok(())
+        })
         }))
         .unwrap();
 

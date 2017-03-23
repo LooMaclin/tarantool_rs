@@ -41,7 +41,7 @@ impl Decoder for TarantoolCodec
             } else {
                 let length = read_length(&mut &buf.as_ref()[..5]);
                 println!("Length: {}, size: {}", length as usize, length as usize + 5);
-                if buf.len() >= length as usize + 5 {
+                if buf.len() == length as usize + 5 {
                     let mut incoming_object = buf.split_to(length as usize + 5);
                     println!("incoming object (size: {}): {:#X}", incoming_object.len(), incoming_object.as_hex());
                     let deserialized_incoming_object = get_response(&mut incoming_object.as_ref());

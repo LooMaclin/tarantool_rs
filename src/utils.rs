@@ -72,6 +72,7 @@ pub fn get_response<I>(mut descriptor: &mut I) -> Response
 
     let response_length = read_length(&mut descriptor);
     let payload = read_payload(response_length, &mut descriptor);
+    println!("sync: {:#X}", &payload[8..17].as_hex());
     let header = Header {
         code: BigEndian::read_u32(&payload[3..8]),
         sync: BigEndian::read_u64(&payload[9..17]),
