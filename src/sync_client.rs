@@ -42,7 +42,7 @@ use {TARANTOOL_SPACE_ID, TARANTOOL_INDEX_ID, TARANTOOL_SPACE_ID_KEY_NUMBER,
 use {Utf8String, Integer};
 use auth::Auth;
 use utils::{header, serialize, process_response, scramble, build_request, read_length,
-            read_payload, get_response};
+            read_payload, get_response, build_request_sync};
 use state::State;
 use action_type::ActionType;
 
@@ -75,11 +75,10 @@ impl<'a> SyncClient<'a> {
         let scramble = scramble(tarantool.state.greeting_packet.salt.to_string(),
                                 tarantool.state.password.to_string());
         let owned_user = tarantool.state.clone().user.into_owned();
-        let request = build_request(ActionType::Auth(Auth {
+        let request = build_request_sync(&Auth {
                                         username: String::from(owned_user),
                                         scramble: scramble,
-                                    }),
-                                    0);
+                                    }, 0);
         let write_result = tarantool.descriptor.write(&request);
         match get_response(&mut tarantool.descriptor).body {
             Some(data) => Err(String::from_utf8(data).unwrap()),
@@ -89,9 +88,10 @@ impl<'a> SyncClient<'a> {
 
 
 
-    pub fn request(&mut self, request_body: ActionType) -> Result<Value, Utf8String>
+    pub fn request<I>(&mut self, request_body: &I) -> Result<Value, Utf8String>
+    where I: Action
     {
-        let request = build_request(request_body, self.state.get_id());
+        let request = build_request_sync(request_body, self.state.get_id());
         let write_result = self.descriptor.write(&request);
         let response = get_response(&mut self.descriptor);
         process_response(&response)
@@ -102,14 +102,14 @@ impl<'a> SyncClient<'a> {
     pub fn fetch_space_id<I>(&mut self, space_name: I) -> Result<u64, String>
         where I: Into<Utf8String>
     {
-        match self.request(ActionType::Select(Select {
+        match self.request(&Select {
             space: TARANTOOL_SPACE_ID,
             index: TARANTOOL_SPACE_ID_KEY_NUMBER,
             limit: 1,
             offset: 0,
             iterator: IteratorType::Eq,
             keys: vec![Value::String(space_name.into())],
-        })) {
+        }) {
             Ok(data) => {
                 println!("DATA: {:?}", data);
                 match data[0][0].as_u64() {
@@ -125,14 +125,14 @@ impl<'a> SyncClient<'a> {
         where I: Into<Integer>,
               K: Into<Utf8String>
     {
-        match self.request(ActionType::Select(Select {
+        match self.request(&Select {
             space: TARANTOOL_INDEX_ID,
             index: TARANTOOL_INDEX_ID_KEY_NUMBER,
             limit: 1,
             offset: 0,
             iterator: IteratorType::Eq,
             keys: vec![Value::Integer(space_id.into()), Value::String(index_name.into())],
-        })) {
+        }) {
             Ok(data) => {
                 match data[0][1].as_u64() {
                     Some(index_id) => Ok(index_id),
