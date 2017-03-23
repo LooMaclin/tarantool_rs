@@ -66,13 +66,27 @@ pub fn build_request(request_body: ActionType, request_id: u64) -> Vec<u8>
     }
 }
 
+pub fn build_request_sync<I>(request_body: &I, request_id: u64) -> Vec<u8> where I: Action
+{
+            let (request_type, body) = request_body.get();
+            let header = header(request_type, request_id);
+            debug!("Request header: {:#X}", header.as_hex());
+            debug!("Request body: {:#X}", body.as_hex());
+            let mut encoded_request_length = [0x00, 0x00, 0x00, 0x00, 0x00];
+            write_u32(&mut &mut encoded_request_length[..],
+                      (header.len() + body.len()) as u32)
+                .ok()
+                .unwrap();
+            let request = [&encoded_request_length[..], &header[..], &body[..]].concat();
+            request
+}
+
 pub fn get_response<I>(mut descriptor: &mut I) -> Response
     where I: Read
 {
 
     let response_length = read_length(&mut descriptor);
     let payload = read_payload(response_length, &mut descriptor);
-    println!("sync: {:#X}", &payload[8..17].as_hex());
     let header = Header {
         code: BigEndian::read_u32(&payload[3..8]),
         sync: BigEndian::read_u64(&payload[9..17]),
