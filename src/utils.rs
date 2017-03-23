@@ -147,12 +147,11 @@ pub fn read_length<I>(stream: &mut I) -> u32
     length
 }
 
-pub fn scramble<'a, S>(salt: S, password: S) -> Vec<u8>
-    where S: Into<Cow<'a, str>>
+pub fn scramble(salt: String, password: String) -> Vec<u8>
 {
-    let decoded_salt = &decode_base64(&salt.into()).unwrap()[..];
+    let decoded_salt = &decode_base64(&salt).unwrap()[..];
     let mut step_1 = Sha1::new();
-    step_1.update(&(password.into()[..]).as_bytes());
+    step_1.update(&(password[..]).as_bytes());
     let mut step_2 = Sha1::new();
     step_2.update(&step_1.digest().bytes());
     let mut step_3 = Sha1::new();

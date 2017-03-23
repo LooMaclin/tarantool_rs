@@ -17,6 +17,7 @@ use async_response::AsyncResponse;
 use auth::Auth;
 use std::borrow::Cow;
 use action_type::ActionType;
+use hex_slice::AsHex;
 
 #[derive(Debug)]
 pub struct TarantoolProto;
@@ -42,6 +43,7 @@ impl<T> ClientProto<T> for TarantoolProto
                         let &(request_id, ref resp) = msg;
                         match resp {
                             &AsyncResponse::Handshake(ref handshake_data) => {
+                                println!("Handshaked data: {:#X}", handshake_data.as_hex());
                                 Box::new(transport.send((0,
                                                          ActionType::Auth(Auth {
                                     username: String::from("test"),

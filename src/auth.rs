@@ -26,10 +26,12 @@ impl Action for Auth {
                                     Value::from(self.username.clone())),
                                    (Value::from(Code::Tuple as u8),
                                     Value::from(vec![
-                read_value(&mut &[
-                    &CHAP_SHA_1[..],
-                    &[0xC4, 0x14][..],
-                    &self.scramble[..]].concat()[..]).unwrap()
+                                        Value::from("chap-sha1"), Value::Binary(self.scramble.clone())
+//                read_value(&mut &[
+//                    &CHAP_SHA_1[..],
+//                    &[0xC4, 0x14][..],
+//                    &self.scramble[..],
+//                    &[0xC4][..]].concat()[..]).unwrap()
             ]))])))
     }
 }

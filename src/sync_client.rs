@@ -72,8 +72,8 @@ impl<'a> SyncClient<'a> {
             },
             descriptor: stream,
         };
-        let scramble = scramble(&*tarantool.state.greeting_packet.salt,
-                                &*tarantool.state.password);
+        let scramble = scramble(tarantool.state.greeting_packet.salt.to_string(),
+                                tarantool.state.password.to_string());
         let owned_user = tarantool.state.clone().user.into_owned();
         let request = build_request(ActionType::Auth(Auth {
                                         username: String::from(owned_user),

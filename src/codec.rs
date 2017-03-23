@@ -16,6 +16,7 @@ use std::marker::PhantomData;
 use std::io::{Error, ErrorKind};
 use async_response::AsyncResponse;
 use action_type::ActionType;
+use std::borrow::Cow;
 
 #[derive(Debug)]
 pub struct TarantoolCodec
@@ -56,8 +57,9 @@ impl Decoder for TarantoolCodec
             if buf.len() == 128 {
                 let raw_greeting = buf.split_to(128);
                 let salt = raw_greeting[64..108].to_vec();
+                let scramble = scramble(String::from_utf8(salt).unwrap(), "test".to_string());
                 self.tarantool_handshake_received = true;
-                return Ok(Some((0, AsyncResponse::Handshake(salt))));
+                return Ok(Some((0, AsyncResponse::Handshake(scramble))));
             }
         }
 

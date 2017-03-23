@@ -1,32 +1,17 @@
 use std::borrow::Cow;
 
 #[derive(Debug, Clone)]
-pub struct GreetingPacket<'a> {
-    pub greeting: Cow<'a, str>,
-    pub salt: Cow<'a, str>,
+pub struct GreetingPacket {
+    pub greeting: String,
+    pub salt: String,
 }
 
-impl<'a> GreetingPacket<'a> {
-    pub fn new<S>(salt: S, greeting: S) -> GreetingPacket<'a>
-        where S: Into<Cow<'a, str>>
+impl GreetingPacket {
+    pub fn new(salt: String, greeting: String) -> GreetingPacket
     {
         GreetingPacket {
-            greeting: greeting.into(),
-            salt: salt.into(),
+            greeting: greeting,
+            salt: salt,
         }
-    }
-
-    pub fn greeting<S>(&'a mut self, greeting: S) -> &'a mut GreetingPacket
-        where S: Into<Cow<'a, str>>
-    {
-        self.greeting = greeting.into();
-        self
-    }
-
-    pub fn salt<S>(&'a mut self, salt: S) -> &'a mut GreetingPacket
-        where S: Into<Cow<'a, str>>
-    {
-        self.salt = salt.into();
-        self
     }
 }

@@ -6,7 +6,7 @@ pub struct State<'a> {
     pub address: Cow<'a, str>,
     pub user: Cow<'a, str>,
     pub password: Cow<'a, str>,
-    pub greeting_packet: GreetingPacket<'a>,
+    pub greeting_packet: GreetingPacket,
     pub request_id: u64,
 }
 
