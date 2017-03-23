@@ -16,25 +16,20 @@ use rmp::encode::write_u32;
 use async_response::AsyncResponse;
 use auth::Auth;
 use std::borrow::Cow;
+use action_type::ActionType;
 
-pub struct TarantoolProto<A>
-    where A: Action
-{
-    pub _phantom: PhantomData<A>,
-}
+pub struct TarantoolProto;
 
-impl<T, A> ClientProto<T> for TarantoolProto<A>
-    where A: Action + 'static,
-          T: AsyncRead + AsyncWrite + 'static
+impl<T> ClientProto<T> for TarantoolProto
+    where T: AsyncRead + AsyncWrite + 'static
 {
-    type Request = A;
+    type Request = ActionType;
     type Response = AsyncResponse;
-    type Transport = Framed<T, TarantoolCodec<A>>;
+    type Transport = Framed<T, TarantoolCodec>;
     type BindTransport = Box<Future<Item = Self::Transport, Error = io::Error>>;
 
     fn bind_transport(&self, io: T) -> Self::BindTransport {
         let transport = io.framed(TarantoolCodec {
-            _phantom: PhantomData,
             tarantool_handshake_received: false,
         });
         let handshake = transport.into_future()
@@ -43,16 +38,16 @@ impl<T, A> ClientProto<T> for TarantoolProto<A>
                 match line {
                     Some(ref msg) => {
                         println!("CLIENT: received server handshake");
-                        let &(request_id, resp) = msg;
+                        let &(request_id, ref resp) = msg;
                         match resp {
-                            AsyncResponse::Handshake(handshake_data) => {
+                            &AsyncResponse::Handshake(ref handshake_data) => {
                                 Box::new(transport.send((0,
-                                                         Auth {
-                                    username: Cow::from("test"),
-                                    scramble: handshake_data,
-                                }))) as Self::BindTransport
+                                                         ActionType::Auth(Auth {
+                                    username: String::from("test"),
+                                    scramble: handshake_data.clone(),
+                                })))) as Self::BindTransport
                             }
-                            AsyncResponse::Normal(_) => {
+                            &AsyncResponse::Normal(_) => {
                                 println!("CLIENT: server handshake INVALID");
                                 let err = io::Error::new(io::ErrorKind::Other,
                                                          "initial buffer is't [u8; 128]");
@@ -67,7 +62,6 @@ impl<T, A> ClientProto<T> for TarantoolProto<A>
                     }
                 }
             });
-
         Box::new(handshake)
     }
 }

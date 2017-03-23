@@ -14,16 +14,16 @@ use CHAP_SHA_1;
 use std::borrow::Cow;
 
 #[derive(Debug)]
-pub struct Auth<'a> {
-    pub username: Cow<'a, str>,
+pub struct Auth {
+    pub username: String,
     pub scramble: Vec<u8>,
 }
 
-impl<'a> Action for Auth<'a> {
+impl Action for Auth {
     fn get(&self) -> (RequestTypeKey, Vec<u8>) {
         (RequestTypeKey::Auth,
          serialize(Value::Map(vec![(Value::from(Code::UserName as u8),
-                                    Value::from(self.username)),
+                                    Value::from(self.username.clone())),
                                    (Value::from(Code::Tuple as u8),
                                     Value::from(vec![
                 read_value(&mut &[

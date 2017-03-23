@@ -1,6 +1,6 @@
 use std::borrow::Cow;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct GreetingPacket<'a> {
     pub greeting: Cow<'a, str>,
     pub salt: Cow<'a, str>,

@@ -56,6 +56,7 @@ pub mod utils;
 pub mod state;
 pub mod async_response;
 pub mod auth;
+pub mod action_type;
 
 pub use rmpv::Value;
 pub use sync_client::SyncClient;

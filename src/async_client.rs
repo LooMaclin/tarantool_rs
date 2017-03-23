@@ -18,28 +18,27 @@ use std::str::FromStr;
 use insert::Insert;
 use std::marker::PhantomData;
 use async_response::AsyncResponse;
+use action_type::ActionType;
 
-pub struct AsyncClient<A>
-    where A: Action + 'static
+pub struct AsyncClient
 {
-    inner: Validate<ClientService<TcpStream, TarantoolProto<A>>, A>,
+    inner: Validate<ClientService<TcpStream, TarantoolProto>>,
 }
 
-impl<A: Action> AsyncClient<A> {
+impl AsyncClient {
     pub fn auth<'a, S>(address: S,
                        user: S,
                        password: S,
                        handle: &Handle)
-                       -> Box<Future<Item = AsyncClient<A>, Error = io::Error>>
+                       -> Box<Future<Item = AsyncClient, Error = io::Error>>
         where S: Into<Cow<'a, str>>
     {
         let addr = SocketAddr::from_str(address.into().as_ref()).unwrap();
-        let ret = TcpClient::new(TarantoolProto { _phantom: PhantomData })
+        let ret = TcpClient::new(TarantoolProto)
             .connect(&addr, handle)
             .map(|client_service| {
                 let validate = Validate {
-                    inner: client_service,
-                    action: PhantomData,
+                    inner: client_service
                 };
                 AsyncClient { inner: validate }
             });
@@ -47,10 +46,9 @@ impl<A: Action> AsyncClient<A> {
     }
 }
 
-impl<A> Service for AsyncClient<A>
-    where A: Action
+impl Service for AsyncClient
 {
-    type Request = A;
+    type Request = ActionType;
     type Response = AsyncResponse;
     type Error = io::Error;
 

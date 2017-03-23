@@ -1,7 +1,7 @@
 use std::borrow::Cow;
 use greeting_packet::GreetingPacket;
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct State<'a> {
     pub address: Cow<'a, str>,
     pub user: Cow<'a, str>,

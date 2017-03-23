@@ -15,6 +15,7 @@ use service_fn::service_fn;
 use std::thread;
 use std::time::Duration;
 use tarantool::async_client::AsyncClient;
+use tarantool::action_type::ActionType;
 
 fn main() {
 
@@ -23,10 +24,10 @@ fn main() {
     let handle = core.handle();
 
     core.run(AsyncClient::auth("127.0.0.1:3301", "test", "test", &handle).and_then(|mut client| {
-            client.call(Insert {
+            client.call(ActionType::Insert(Insert {
                 space: 512,
                 keys: vec![Value::from(23)]
-            }).and_then(|result| {
+            })).and_then(|result| {
                 println!("Insert result: {:?}", result);
                 Ok(())
             })

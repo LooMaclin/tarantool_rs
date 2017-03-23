@@ -15,16 +15,14 @@ use action::Action;
 use std::marker::PhantomData;
 use std::io::{Error, ErrorKind};
 use async_response::AsyncResponse;
+use action_type::ActionType;
 
-pub struct TarantoolCodec<A>
-    where A: Action
+pub struct TarantoolCodec
 {
-    pub _phantom: PhantomData<A>,
     pub tarantool_handshake_received: bool,
 }
 
-impl<A> Decoder for TarantoolCodec<A>
-    where A: Action
+impl Decoder for TarantoolCodec
 {
     type Item = (RequestId, AsyncResponse);
     type Error = io::Error;
@@ -35,17 +33,20 @@ impl<A> Decoder for TarantoolCodec<A>
                  buf.len(),
                  buf.as_ref().as_hex());
         if self.tarantool_handshake_received {
+            println!("HANDSHAKE RECEIVED SCOPE");
             if buf.len() < 5 {
                 return Ok(None);
             } else {
                 let length = read_length(&mut buf.as_ref());
                 println!("Object length: {}", length);
+                println!("Object length + 5 = {}", length + 5);
                 if buf.len() == (length + 5) as usize {
                     let incoming_object = buf.split_to(length as usize + 5);
                     return Ok(Some((1, AsyncResponse::Normal(Ok(Value::from("HAHAHA"))))));
                 }
             }
         } else {
+            println!("HANDSHAKE NOT RECEIVED SCOPE");
             if buf.len() == 128 {
                 let raw_greeting = buf.split_to(128);
                 let salt = raw_greeting[64..108].to_vec();
@@ -62,19 +63,18 @@ impl<A> Decoder for TarantoolCodec<A>
     }
 }
 
-impl<A> Encoder for TarantoolCodec<A>
-    where A: Action
+impl Encoder for TarantoolCodec
 {
-    type Item = (RequestId, A);
+    type Item = (RequestId, ActionType);
     type Error = io::Error;
 
-    fn encode(&mut self, msg: (RequestId, A), buf: &mut BytesMut) -> io::Result<()> {
+    fn encode(&mut self, msg: (RequestId, ActionType), buf: &mut BytesMut) -> io::Result<()> {
         println!("=== START ENCODE ===");
         println!("Incoming buffer before (size: {}): {:#X} \n",
                  buf.len(),
                  buf.as_ref().as_hex());
         let (request_id, msg) = msg;
-        let request = build_request(&msg, request_id);
+        let request = build_request(msg, request_id);
         buf.reserve(request.len());
         buf.put_slice(&request);
         println!("Incoming buffer after (size: {}): {:#X} \n",

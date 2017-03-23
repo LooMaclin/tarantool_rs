@@ -4,43 +4,40 @@ use tokio_service::{Service, NewService};
 use rmpv::{Value, Utf8String};
 use action::Action;
 use std::marker::PhantomData;
+use action_type::ActionType;
 use async_response::AsyncResponse;
 
-pub struct Validate<S, A> {
-    pub inner: S,
-    pub action: PhantomData<A>,
+pub struct Validate<S> {
+    pub inner: S
 }
 
-impl<S, A> Service for Validate<S, A>
-    where S: Service<Request = A, Response = AsyncResponse, Error = io::Error>,
-          S::Future: 'static,
-          A: Action
+impl<S> Service for Validate<S>
+    where S: Service<Request = ActionType, Response = AsyncResponse, Error = io::Error>,
+          S::Future: 'static
 {
-    type Request = A;
+    type Request = ActionType;
     type Response = AsyncResponse;
     type Error = io::Error;
     type Future = Box<Future<Item = AsyncResponse, Error = io::Error>>;
 
-    fn call(&self, req: A) -> Self::Future {
+    fn call(&self, req: ActionType) -> Self::Future {
         Box::new(self.inner.call(req).and_then(|resp| Ok(resp)))
     }
 }
 
-impl<S, A> NewService for Validate<S, A>
-    where S: NewService<Request = A, Response = AsyncResponse, Error = io::Error>,
-          A: Action,
+impl<S> NewService for Validate<S>
+    where S: NewService<Request = ActionType, Response = AsyncResponse, Error = io::Error>,
           <S::Instance as Service>::Future: 'static
 {
-    type Request = A;
+    type Request = ActionType;
     type Response = AsyncResponse;
     type Error = io::Error;
-    type Instance = Validate<S::Instance, A>;
+    type Instance = Validate<S::Instance>;
 
     fn new_service(&self) -> io::Result<Self::Instance> {
         let inner = try!(self.inner.new_service());
         Ok(Validate {
-            inner: inner,
-            action: PhantomData,
+            inner: inner
         })
     }
 }

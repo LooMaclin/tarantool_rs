@@ -19,21 +19,51 @@ use rustc_serialize::{Encodable, Decodable};
 use sha1::Sha1;
 use base64::decode as decode_base64;
 use action::Action;
+use action_type::ActionType;
 
-pub fn build_request<I>(request_body: &I, request_id: u64) -> Vec<u8>
-    where I: Action
+pub fn build_request(request_body: ActionType, request_id: u64) -> Vec<u8>
 {
-    let (request_type, body) = request_body.get();
-    let header = header(request_type, request_id);
-    debug!("Request header: {:#X}", header.as_hex());
-    debug!("Request body: {:#X}", body.as_hex());
-    let mut encoded_request_length = [0x00, 0x00, 0x00, 0x00, 0x00];
-    write_u32(&mut &mut encoded_request_length[..],
-              (header.len() + body.len()) as u32)
-        .ok()
-        .unwrap();
-    let request = [&encoded_request_length[..], &header[..], &body[..]].concat();
-    request
+    match request_body {
+        ActionType::Auth(auth) => {
+            let (request_type, body) = auth.get();
+            let header = header(request_type, request_id);
+            debug!("Request header: {:#X}", header.as_hex());
+            debug!("Request body: {:#X}", body.as_hex());
+            let mut encoded_request_length = [0x00, 0x00, 0x00, 0x00, 0x00];
+            write_u32(&mut &mut encoded_request_length[..],
+                      (header.len() + body.len()) as u32)
+                .ok()
+                .unwrap();
+            let request = [&encoded_request_length[..], &header[..], &body[..]].concat();
+            request
+        },
+        ActionType::Select(select) => {
+            let (request_type, body) = select.get();
+            let header = header(request_type, request_id);
+            debug!("Request header: {:#X}", header.as_hex());
+            debug!("Request body: {:#X}", body.as_hex());
+            let mut encoded_request_length = [0x00, 0x00, 0x00, 0x00, 0x00];
+            write_u32(&mut &mut encoded_request_length[..],
+                      (header.len() + body.len()) as u32)
+                .ok()
+                .unwrap();
+            let request = [&encoded_request_length[..], &header[..], &body[..]].concat();
+            request
+        },
+        ActionType::Insert(insert) => {
+            let (request_type, body) = insert.get();
+            let header = header(request_type, request_id);
+            debug!("Request header: {:#X}", header.as_hex());
+            debug!("Request body: {:#X}", body.as_hex());
+            let mut encoded_request_length = [0x00, 0x00, 0x00, 0x00, 0x00];
+            write_u32(&mut &mut encoded_request_length[..],
+                      (header.len() + body.len()) as u32)
+                .ok()
+                .unwrap();
+            let request = [&encoded_request_length[..], &header[..], &body[..]].concat();
+            request
+        }
+    }
 }
 
 pub fn get_response<I>(mut descriptor: &mut I) -> Response
