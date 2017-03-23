@@ -6,7 +6,7 @@ use utils::read_length;
 use hex_slice::AsHex;
 use greeting_packet::GreetingPacket;
 use rmpv::{Utf8String, Value};
-use utils::{build_request, header, scramble, get_response};
+use utils::{build_request, header, scramble, get_response, process_response};
 use request_type_key::RequestTypeKey;
 use rmp::encode::write_u32;
 use insert::Insert;
@@ -17,6 +17,7 @@ use std::io::{Error, ErrorKind};
 use async_response::AsyncResponse;
 use action_type::ActionType;
 
+#[derive(Debug)]
 pub struct TarantoolCodec
 {
     pub tarantool_handshake_received: bool,
@@ -37,12 +38,17 @@ impl Decoder for TarantoolCodec
             if buf.len() < 5 {
                 return Ok(None);
             } else {
-                let length = read_length(&mut buf.as_ref());
-                println!("Object length: {}", length);
-                println!("Object length + 5 = {}", length + 5);
-                if buf.len() == (length + 5) as usize {
-                    let incoming_object = buf.split_to(length as usize + 5);
-                    return Ok(Some((1, AsyncResponse::Normal(Ok(Value::from("HAHAHA"))))));
+                let length = read_length(&mut &buf.as_ref()[..5]);
+                println!("Length: {}, size: {}", length as usize, length as usize + 5);
+                if buf.len() >= length as usize + 5 {
+                    let mut incoming_object = buf.split_to(length as usize + 5);
+                    println!("incoming object (size: {}): {:#X}", incoming_object.len(), incoming_object.as_hex());
+                    let deserialized_incoming_object = get_response(&mut incoming_object.as_ref());
+                    let request_id = deserialized_incoming_object.header.sync;
+                    println!("Deserialized incoming object: {:?}", deserialized_incoming_object);
+                    let deserialized_incoming_object = process_response(&deserialized_incoming_object);
+                    println!("Deserialized incoming object: {:?}", deserialized_incoming_object);
+                    return Ok(Some((request_id, AsyncResponse::Normal(deserialized_incoming_object))));
                 }
             }
         } else {

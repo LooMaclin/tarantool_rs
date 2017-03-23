@@ -7,6 +7,7 @@ use std::marker::PhantomData;
 use action_type::ActionType;
 use async_response::AsyncResponse;
 
+#[derive(Debug)]
 pub struct Validate<S> {
     pub inner: S
 }

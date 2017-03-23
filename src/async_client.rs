@@ -20,9 +20,10 @@ use std::marker::PhantomData;
 use async_response::AsyncResponse;
 use action_type::ActionType;
 
+#[derive(Debug)]
 pub struct AsyncClient
 {
-    inner: Validate<ClientService<TcpStream, TarantoolProto>>,
+    pub inner: Validate<ClientService<TcpStream, TarantoolProto>>,
 }
 
 impl AsyncClient {

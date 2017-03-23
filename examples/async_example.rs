@@ -26,7 +26,7 @@ fn main() {
     core.run(AsyncClient::auth("127.0.0.1:3301", "test", "test", &handle).and_then(|mut client| {
             client.call(ActionType::Insert(Insert {
                 space: 512,
-                keys: vec![Value::from(23)]
+                keys: vec![Value::from(1)]
             })).and_then(|result| {
                 println!("Insert result: {:?}", result);
                 Ok(())

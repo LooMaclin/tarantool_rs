@@ -18,6 +18,7 @@ use auth::Auth;
 use std::borrow::Cow;
 use action_type::ActionType;
 
+#[derive(Debug)]
 pub struct TarantoolProto;
 
 impl<T> ClientProto<T> for TarantoolProto
