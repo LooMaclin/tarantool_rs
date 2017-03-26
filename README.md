@@ -5,7 +5,7 @@ Sync/Async tarantool database connector.
 
 [![Coverage Status](https://coveralls.io/repos/github/LooMaclin/tarantool_rs/badge.svg?branch=master)](https://coveralls.io/github/LooMaclin/tarantool_rs?branch=master)
 
-#Overview
+# Overview
 - [Install](#install)
 - [Usage](#usage)
     - [Include extern crate](#include-extern-crate)
@@ -24,14 +24,14 @@ Sync/Async tarantool database connector.
     - [Update string](#update-string)
     - [Update integer](#update-integer)
 
-#Install
+# Install
 
 ```toml
 [dependencies]
 tarantool = { git = "https://github.com/LooMaclin/tarantool_rs.git" }
 ```
 
-#Usage
+# Usage
 
 ## Include extern crate 
 
