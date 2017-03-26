@@ -111,7 +111,6 @@ impl<'a> SyncClient<'a> {
             keys: vec![Value::String(space_name.into())],
         }) {
             Ok(data) => {
-                println!("DATA: {:?}", data);
                 match data[0][0].as_u64() {
                     Some(space_id) => Ok(space_id),
                     None => Err(String::from("Space not found")),
