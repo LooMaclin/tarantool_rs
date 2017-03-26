@@ -33,7 +33,7 @@ tarantool = { git = "https://github.com/LooMaclin/tarantool_rs.git" }
 
 #Usage
 
-##Include extern crate 
+## Include extern crate 
 
 ```rust
 
@@ -41,7 +41,7 @@ extern crate tarantool;
 
 ```
 
-##Use modules
+## Use modules
 
 ```rust
 
@@ -51,7 +51,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
 
 ```
 
-##Create tarantool connection instance
+## Create tarantool connection instance
 
 ```rust
 
@@ -63,7 +63,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
 
 ```
 
-##Retrieve space id
+## Retrieve space id
 
 ```rust
 
@@ -72,7 +72,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
 
 ```
 
-##Retrieve index id
+## Retrieve index id
 
 ```rust
 
@@ -81,7 +81,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
 
 ```
 
-##Select
+## Select
 
 ```rust
 
@@ -104,7 +104,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
     
 ```
 
-##Insert
+## Insert
 
 ```rust
 
@@ -117,7 +117,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
 
 ```
 
-##Replace
+## Replace
 
 ```rust
 
@@ -130,7 +130,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
 
 ```
 
-##Update integer
+## Update integer
 
 ```rust
 
@@ -147,7 +147,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
 
 ```
 
-##Update string
+## Update string
 
 ```rust
 
@@ -165,7 +165,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
 
 ```
 
-##Update common
+## Update common
 
 ```rust
 
@@ -182,7 +182,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
 
 ```
 
-##Delete
+## Delete
 
 ```rust
 
@@ -196,7 +196,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
 
 ```
 
-##Call
+## Call
 
 ```rust
 
@@ -209,7 +209,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
 
 ```
 
-##Eval
+## Eval
 
 ```rust
 
@@ -222,7 +222,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
 
 ```
 
-##Upsert
+## Upsert
 
 ```rust
 
