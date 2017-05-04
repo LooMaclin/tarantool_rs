@@ -1,5 +1,4 @@
 #![deny(warnings)]
-#![feature(type_ascription)]
 
 extern crate rmpv;
 extern crate rmp_serde;
