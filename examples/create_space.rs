@@ -14,7 +14,7 @@ fn main() {
 
     let eval = Eval {
         expression: r#"box.schema.space.create('space55')"#.into(),
-        keys: &vec![],
+        keys: vec![],
     };
 
     tarantool_instance
