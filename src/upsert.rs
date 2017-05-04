@@ -1,17 +1,11 @@
-use iterator_type::IteratorType;
 use rmpv::Value;
-use utils::{header, serialize, process_response};
-use byteorder::BigEndian;
+use utils::serialize;
 use request_type_key::RequestTypeKey;
 use code::Code;
-use serde::Serialize;
 use upsert_operation::UpsertOperation;
-use sync_client::SyncClient;
 use FIX_STR_PREFIX;
-use byteorder::ByteOrder;
 use action::Action;
 use rmpv::decode::read_value;
-use {Utf8String, Integer};
 
 #[derive(Debug)]
 pub struct Upsert {

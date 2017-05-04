@@ -1,14 +1,8 @@
 use iterator_type::IteratorType;
 use rmpv::Value;
-use utils::{header, serialize, process_response};
-use byteorder::BigEndian;
+use utils::serialize;
 use request_type_key::RequestTypeKey;
 use code::Code;
-use byteorder::ByteOrder;
-use serde::Serialize;
-use std::net::TcpStream;
-use std::io::{Read, Write};
-use sync_client::SyncClient;
 use action::Action;
 
 #[derive(Debug)]

@@ -1,15 +1,12 @@
 use std::io;
 use futures::Future;
 use tokio_service::{Service, NewService};
-use rmpv::{Value, Utf8String};
-use action::Action;
-use std::marker::PhantomData;
 use action_type::ActionType;
 use async_response::AsyncResponse;
 
 #[derive(Debug)]
 pub struct Validate<S> {
-    pub inner: S
+    pub inner: S,
 }
 
 impl<S> Service for Validate<S>
@@ -37,8 +34,6 @@ impl<S> NewService for Validate<S>
 
     fn new_service(&self) -> io::Result<Self::Instance> {
         let inner = try!(self.inner.new_service());
-        Ok(Validate {
-            inner: inner
-        })
+        Ok(Validate { inner: inner })
     }
 }

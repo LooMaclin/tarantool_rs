@@ -5,8 +5,8 @@ extern crate tokio_service;
 extern crate service_fn;
 
 use tarantool::{Value, SyncClient, IteratorType, Select, Insert, Replace, Delete, UpdateCommon,
-                CommonOperation, Call, Eval, UpdateString, UpdateInteger, IntegerOperation, Upsert,
-                UpsertOperation};
+                CommonOperation, Call, Eval, UpdateString, UpdateInteger, IntegerOperation,
+                Upsert, UpsertOperation};
 
 use futures::Future;
 use tokio_core::reactor::Core;
@@ -23,21 +23,30 @@ fn main() {
 
     let handle = core.handle();
 
-    core.run(AsyncClient::auth("127.0.0.1:3301", "test", "test", &handle).and_then(|mut client| {
-            client.call(ActionType::Insert(Insert {
-                space: 512,
-                keys: vec![Value::from(111), Value::from("fuck STONES"), Value::from(2025)]
-            })).and_then(|result| {
-                println!("Insert result: {:?}", result);
-                Ok(())
-            });
-            client.call(ActionType::Insert(Insert {
-                space: 512,
-                keys: vec![Value::from(1221), Value::from("ROLLING STONES"), Value::from(2025)]
-            })).and_then(|result| {
-                println!("Insert result: {:?}", result);
-                Ok(())
-            })
+    core.run(AsyncClient::auth("127.0.0.1:3301", "test", "test", &handle)
+                 .and_then(|mut client| {
+            client
+                .call(ActionType::Insert(Insert {
+                                             space: 512,
+                                             keys: vec![Value::from(111),
+                                                        Value::from("fuck STONES"),
+                                                        Value::from(2025)],
+                                         }))
+                .and_then(|result| {
+                              println!("Insert result: {:?}", result);
+                              Ok(())
+                          });
+            client
+                .call(ActionType::Insert(Insert {
+                                             space: 512,
+                                             keys: vec![Value::from(1221),
+                                                        Value::from("ROLLING STONES"),
+                                                        Value::from(2025)],
+                                         }))
+                .and_then(|result| {
+                              println!("Insert result: {:?}", result);
+                              Ok(())
+                          })
         }))
         .unwrap();
 

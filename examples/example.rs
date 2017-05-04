@@ -1,8 +1,8 @@
 extern crate tarantool;
 
 use tarantool::{Value, SyncClient, IteratorType, Select, Insert, Replace, Delete, UpdateCommon,
-                CommonOperation, Call, Eval, UpdateString, UpdateInteger, IntegerOperation, Upsert,
-                UpsertOperation};
+                CommonOperation, Call, Eval, UpdateString, UpdateInteger, IntegerOperation,
+                Upsert, UpsertOperation};
 
 fn main() {
 
@@ -22,13 +22,12 @@ fn main() {
         keys: vec![],
     };
 
-    let tuples = tarantool_instance.request(&select).unwrap_or_else(&error_handler);
+    let tuples = tarantool_instance
+        .request(&select)
+        .unwrap_or_else(&error_handler);
 
     println!("Select result: ");
-    for (index, tuple) in tuples.as_array()
-            .unwrap()
-            .iter()
-            .enumerate() {
+    for (index, tuple) in tuples.as_array().unwrap().iter().enumerate() {
         let tuple = tuple.as_array().unwrap();
         println!("{}: {:?}", index, tuple);
     }
@@ -39,7 +38,9 @@ fn main() {
     };
 
     println!("Replace result: {:?}",
-             tarantool_instance.request(&replace).unwrap_or_else(&error_handler));
+             tarantool_instance
+                 .request(&replace)
+                 .unwrap_or_else(&error_handler));
 
     let delete = Delete {
         space: 512,
@@ -48,7 +49,9 @@ fn main() {
     };
 
     println!("Delete result: {:?}",
-             tarantool_instance.request(&delete).unwrap_or_else(&error_handler));
+             tarantool_instance
+                 .request(&delete)
+                 .unwrap_or_else(&error_handler));
 
     let update_common = UpdateCommon {
         space: 512,
@@ -60,7 +63,9 @@ fn main() {
     };
 
     println!("Common-Update result: {:?}",
-             tarantool_instance.request(&update_common).unwrap_or_else(&error_handler));
+             tarantool_instance
+                 .request(&update_common)
+                 .unwrap_or_else(&error_handler));
 
     let call = Call {
         function_name: "test".into(),
@@ -68,7 +73,9 @@ fn main() {
     };
 
     println!("Call result: {:?}",
-             tarantool_instance.request(&call).unwrap_or_else(&error_handler));
+             tarantool_instance
+                 .request(&call)
+                 .unwrap_or_else(&error_handler));
 
     let eval = Eval {
         expression: r#"return 5+5"#.into(),
@@ -76,7 +83,9 @@ fn main() {
     };
 
     println!("Eval result: {:?}",
-             tarantool_instance.request(&eval).unwrap_or_else(&error_handler));
+             tarantool_instance
+                 .request(&eval)
+                 .unwrap_or_else(&error_handler));
 
     let update_string = UpdateString {
         space: 512,
@@ -89,7 +98,9 @@ fn main() {
     };
 
     println!("String-Update result: {:?}",
-             tarantool_instance.request(&update_string).unwrap_or_else(&error_handler));
+             tarantool_instance
+                 .request(&update_string)
+                 .unwrap_or_else(&error_handler));
 
     let update_integer = UpdateInteger {
         space: 512,
@@ -101,7 +112,9 @@ fn main() {
     };
 
     println!("Integer-Update result: {:?}",
-             tarantool_instance.request(&update_integer).unwrap_or_else(&error_handler));
+             tarantool_instance
+                 .request(&update_integer)
+                 .unwrap_or_else(&error_handler));
 
     let upsert = Upsert {
         space: 512,
@@ -112,7 +125,9 @@ fn main() {
     };
 
     println!("Upsert result: {:?}",
-             tarantool_instance.request(&upsert).unwrap_or_else(&error_handler));
+             tarantool_instance
+                 .request(&upsert)
+                 .unwrap_or_else(&error_handler));
 
     let insert = Insert {
         space: 512,
@@ -120,5 +135,7 @@ fn main() {
     };
 
     println!("Insert result: {:?}",
-             tarantool_instance.request(&insert).unwrap_or_else(&error_handler));
+             tarantool_instance
+                 .request(&insert)
+                 .unwrap_or_else(&error_handler));
 }

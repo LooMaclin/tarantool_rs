@@ -1,8 +1,8 @@
 extern crate tarantool;
 
 use tarantool::{Value, SyncClient, IteratorType, Select, Insert, Replace, Delete, UpdateCommon,
-                CommonOperation, Call, Eval, UpdateString, UpdateInteger, IntegerOperation, Upsert,
-                UpsertOperation};
+                CommonOperation, Call, Eval, UpdateString, UpdateInteger, IntegerOperation,
+                Upsert, UpsertOperation};
 
 #[derive(Debug)]
 pub struct User {
@@ -50,7 +50,9 @@ fn main() {
                        Value::from(user.posts)],
         };
         println!("Insert result: {:?}",
-                 tarantool_instance.request(&insert).unwrap_or_else(&error_handler));
+                 tarantool_instance
+                     .request(&insert)
+                     .unwrap_or_else(&error_handler));
     }
 
     let select = Select {
@@ -62,13 +64,12 @@ fn main() {
         keys: vec![],
     };
 
-    let tuples = tarantool_instance.request(&select).unwrap_or_else(&error_handler);
+    let tuples = tarantool_instance
+        .request(&select)
+        .unwrap_or_else(&error_handler);
 
     println!("Select result: ");
-    for (index, tuple) in tuples.as_array()
-            .unwrap()
-            .iter()
-            .enumerate() {
+    for (index, tuple) in tuples.as_array().unwrap().iter().enumerate() {
         let tuple = tuple.as_array().unwrap();
         println!("{}: {:?}", index, tuple);
         println!("{}: {:?}",
@@ -87,7 +88,9 @@ fn main() {
         };
 
         println!("Delete result: {:?}",
-                 tarantool_instance.request(&delete).unwrap_or_else(&error_handler));
+                 tarantool_instance
+                     .request(&delete)
+                     .unwrap_or_else(&error_handler));
     }
 
 }

@@ -8,21 +8,13 @@ use futures::Future;
 use std::io;
 use tokio_proto::TcpClient;
 use tokio_service::Service;
-use rmpv::{Value, Utf8String};
-use action::Action;
-use state::State;
 use std::borrow::Cow;
-use greeting_packet::GreetingPacket;
-use utils::{header, build_request, process_response};
 use std::str::FromStr;
-use insert::Insert;
-use std::marker::PhantomData;
 use async_response::AsyncResponse;
 use action_type::ActionType;
 
 #[derive(Debug)]
-pub struct AsyncClient
-{
+pub struct AsyncClient {
     pub inner: Validate<ClientService<TcpStream, TarantoolProto>>,
 }
 
@@ -35,20 +27,20 @@ impl AsyncClient {
         where S: Into<Cow<'a, str>>
     {
         let addr = SocketAddr::from_str(address.into().as_ref()).unwrap();
-        let ret = TcpClient::new(TarantoolProto)
+        let ret = TcpClient::new(TarantoolProto {
+            user: user.into().into_owned(),
+            password: password.into().into_owned(),
+        })
             .connect(&addr, handle)
             .map(|client_service| {
-                let validate = Validate {
-                    inner: client_service
-                };
-                AsyncClient { inner: validate }
-            });
+                     let validate = Validate { inner: client_service };
+                     AsyncClient { inner: validate }
+                 });
         Box::new(ret)
     }
 }
 
-impl Service for AsyncClient
-{
+impl Service for AsyncClient {
     type Request = ActionType;
     type Response = AsyncResponse;
     type Error = io::Error;

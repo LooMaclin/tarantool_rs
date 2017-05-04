@@ -1,12 +1,10 @@
+#![deny(warnings)]
 #![feature(type_ascription)]
 
 extern crate rmpv;
 extern crate rmp_serde;
 extern crate serde;
-
-#[macro_use]
 extern crate rmp;
-
 extern crate base64;
 extern crate sha1;
 extern crate rmp_serialize;

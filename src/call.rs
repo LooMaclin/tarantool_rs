@@ -1,13 +1,8 @@
-use iterator_type::IteratorType;
 use rmpv::Value;
-use utils::{header, serialize, process_response};
-use byteorder::BigEndian;
+use utils::serialize;
 use request_type_key::RequestTypeKey;
 use code::Code;
-use serde::Serialize;
-use sync_client::SyncClient;
 use action::Action;
-use {Integer, Utf8String};
 use std::borrow::Cow;
 
 #[derive(Debug)]

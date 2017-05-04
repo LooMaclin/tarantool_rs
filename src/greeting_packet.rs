@@ -1,5 +1,3 @@
-use std::borrow::Cow;
-
 #[derive(Debug, Clone)]
 pub struct GreetingPacket {
     pub greeting: String,
@@ -7,8 +5,7 @@ pub struct GreetingPacket {
 }
 
 impl GreetingPacket {
-    pub fn new(salt: String, greeting: String) -> GreetingPacket
-    {
+    pub fn new(salt: String, greeting: String) -> GreetingPacket {
         GreetingPacket {
             greeting: greeting,
             salt: salt,

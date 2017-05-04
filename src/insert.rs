@@ -1,13 +1,7 @@
-use iterator_type::IteratorType;
-use rmpv::{ValueRef, Value};
-use utils::{header, serialize, process_response};
-use byteorder::BigEndian;
+use rmpv::Value;
+use utils::serialize;
 use request_type_key::RequestTypeKey;
 use code::Code;
-use serde::Serialize;
-use sync_client::SyncClient;
-use byteorder::ByteOrder;
-use hex_slice::AsHex;
 use action::Action;
 
 #[derive(Debug)]

@@ -1,31 +1,19 @@
 use tokio_io::codec::{Decoder, Encoder};
 use tokio_proto::multiplex::RequestId;
 use std::io;
-use bytes::{BytesMut, BufMut, BigEndian};
+use bytes::{BytesMut, BufMut};
 use utils::read_length;
 use hex_slice::AsHex;
-use greeting_packet::GreetingPacket;
-use rmpv::{Utf8String, Value};
-use utils::{build_request, header, scramble, get_response, process_response};
-use request_type_key::RequestTypeKey;
-use rmp::encode::write_u32;
-use insert::Insert;
-use rmpv::decode::read_value;
-use action::Action;
-use std::marker::PhantomData;
-use std::io::{Error, ErrorKind};
+use utils::{build_request, scramble, get_response, process_response};
 use async_response::AsyncResponse;
 use action_type::ActionType;
-use std::borrow::Cow;
 
 #[derive(Debug)]
-pub struct TarantoolCodec
-{
+pub struct TarantoolCodec {
     pub tarantool_handshake_received: bool,
 }
 
-impl Decoder for TarantoolCodec
-{
+impl Decoder for TarantoolCodec {
     type Item = (RequestId, AsyncResponse);
     type Error = io::Error;
 
@@ -42,15 +30,20 @@ impl Decoder for TarantoolCodec
                 let length = read_length(&mut &buf.as_ref()[..5]);
                 println!("Length: {}, size: {}", length as usize, length as usize + 5);
                 if buf.len() >= length as usize + 5 {
-                    let mut incoming_object = buf.split_to(length as usize + 5);
-                    println!("incoming object (size: {}): {:#X}", incoming_object.len(), incoming_object.as_hex());
+                    let incoming_object = buf.split_to(length as usize + 5);
+                    println!("incoming object (size: {}): {:#X}",
+                             incoming_object.len(),
+                             incoming_object.as_hex());
                     let raw_response_with_header = get_response(&mut incoming_object.as_ref());
                     let request_id = raw_response_with_header.header.sync;
                     println!("NORMAL REQUEST ID: {}", request_id);
-                    println!("Deserialized raw response object: {:?}", raw_response_with_header);
+                    println!("Deserialized raw response object: {:?}",
+                             raw_response_with_header);
                     let deserialized_incoming_object = process_response(&raw_response_with_header);
-                    println!("Deserialized incoming object: {:?}", deserialized_incoming_object);
-                    return Ok(Some((request_id, AsyncResponse::Normal(deserialized_incoming_object))));
+                    println!("Deserialized incoming object: {:?}",
+                             deserialized_incoming_object);
+                    return Ok(Some((request_id,
+                                    AsyncResponse::Normal(deserialized_incoming_object))));
                 }
             }
         } else {
@@ -72,8 +65,7 @@ impl Decoder for TarantoolCodec
     }
 }
 
-impl Encoder for TarantoolCodec
-{
+impl Encoder for TarantoolCodec {
     type Item = (RequestId, ActionType);
     type Error = io::Error;
 
