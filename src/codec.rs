@@ -145,9 +145,3 @@ impl Encoder for TarantoolCodec {
         Ok(())
     }
 }
-
-impl Drop for TarantoolCodec {
-    fn drop(&mut self) {
-        panic!("what a ****");
-    }
-}
