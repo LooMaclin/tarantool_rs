@@ -119,13 +119,29 @@ impl Encoder for TarantoolCodec {
                  buf.len(),
                  buf.as_ref().as_hex());
         let (mut request_id, msg) = msg;
-        request_id = request_id + 1;
-        let request = build_request(msg, request_id);
-        buf.reserve(request.len());
-        buf.put_slice(&request);
-        println!("Incoming buffer after (size: {}): {:#X} \n",
-                 buf.len(),
-                 buf.as_ref().as_hex());
+        match msg {
+            ActionType::Auth(_) => {
+                request_id = request_id + 1;
+                let request = build_request(msg, request_id);
+                buf.reserve(request.len());
+                buf.put_slice(&request);
+                println!("Incoming buffer after (size: {}): {:#X} \n",
+                         buf.len(),
+                         buf.as_ref().as_hex());
+            }
+            _ => {
+                if self.tarantool_handshake_received {
+                    request_id = request_id + 1;
+                    let request = build_request(msg, request_id);
+                    buf.reserve(request.len());
+                    buf.put_slice(&request);
+                    println!("Incoming buffer after (size: {}): {:#X} \n",
+                             buf.len(),
+                             buf.as_ref().as_hex());
+                }
+            }
+        }
+
         Ok(())
     }
 }
