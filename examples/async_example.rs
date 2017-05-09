@@ -16,6 +16,7 @@ use std::thread;
 use std::time::Duration;
 use tarantool::async_client::AsyncClient;
 use tarantool::action_type::ActionType;
+use futures::future::join_all;
 
 fn main() {
 
@@ -25,29 +26,17 @@ fn main() {
 
     core.run(AsyncClient::auth("127.0.0.1:3301", "test", "test", &handle)
                  .and_then(|mut client| {
-            client
-                .call(ActionType::Insert(Insert {
-                                             space: 512,
-                                             keys: vec![Value::from(111),
-                                                        Value::from("fuck STONES"),
-                                                        Value::from(2025)],
-                                         }))
-                .and_then(|result| {
-                              println!("Insert result: {:?}", result);
-                              Ok(())
-                          });
-            client
-                .call(ActionType::Insert(Insert {
-                                             space: 512,
-                                             keys: vec![Value::from(1221),
-                                                        Value::from("ROLLING STONES"),
-                                                        Value::from(2025)],
-                                         }))
-                .and_then(|result| {
-                              println!("Insert result: {:?}", result);
-                              Ok(())
-                          })
-        }))
-        .unwrap();
+                     join_all((0..10).into_iter().map(|index| {
+                         client
+                             .call(ActionType::Insert(Insert {
+                                 space: 512,
+                                 keys: vec![Value::from(1)],
+                             }))
+                             .then(|result| {
+                                 println!("Insert result: {:?}", result);
+                                 Ok(())
+                             })
+                     }).collect::<Vec<_>>())
+                 })).unwrap();
 
 }
