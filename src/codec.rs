@@ -130,7 +130,7 @@ impl Encoder for TarantoolCodec {
                          buf.as_ref().as_hex());
             }
             _ => {
-                if self.tarantool_handshake_received {
+                if self.tarantool_handshake_received && self.tarantool_auth_message_received {
                     request_id = request_id + 1;
                     let request = build_request(msg, request_id);
                     buf.reserve(request.len());
@@ -143,5 +143,11 @@ impl Encoder for TarantoolCodec {
         }
 
         Ok(())
+    }
+}
+
+impl Drop for TarantoolCodec {
+    fn drop(&mut self) {
+        panic!("what a ****");
     }
 }
