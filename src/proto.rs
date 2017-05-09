@@ -25,7 +25,7 @@ impl<T> ClientProto<T> for TarantoolProto
     type BindTransport = Box<Future<Item = Self::Transport, Error = io::Error>>;
 
     fn bind_transport(&self, io: T) -> Self::BindTransport {
-        let transport = io.framed(TarantoolCodec { tarantool_handshake_received: false });
+        let transport = io.framed(TarantoolCodec { tarantool_handshake_received: false, tarantool_auth_message_received: false });
         let handshake = transport
             .into_future()
             .map_err(|(e, _)| e)

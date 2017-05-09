@@ -11,6 +11,7 @@ use action_type::ActionType;
 #[derive(Debug)]
 pub struct TarantoolCodec {
     pub tarantool_handshake_received: bool,
+    pub tarantool_auth_message_received: bool,
 }
 
 impl Decoder for TarantoolCodec {
@@ -23,30 +24,68 @@ impl Decoder for TarantoolCodec {
                  buf.len(),
                  buf.as_ref().as_hex());
         if self.tarantool_handshake_received {
-            println!("HANDSHAKE RECEIVED SCOPE");
-            if buf.len() <= 5 {
-                return Ok(None);
+            println!("Tarantool handshake received scope...");
+            if self.tarantool_auth_message_received {
+                println!("Tarantool auth message recevied scope...");
+                if buf.len() <= 5 {
+                    return Ok(None);
+                } else {
+                    let length = read_length(&mut &buf.as_ref()[..5]);
+                    println!("Length: {}, size: {}", length as usize, length as usize + 5);
+                    if buf.len() >= length as usize + 5 {
+                        let incoming_object = buf.split_to(length as usize + 5);
+                        println!("incoming object (size: {}): {:#X}",
+                                 incoming_object.len(),
+                                 incoming_object.as_hex());
+                        let raw_response_with_header = get_response(&mut incoming_object.as_ref());
+                        let request_id = raw_response_with_header.header.sync;
+                        println!("NORMAL REQUEST ID: {}", request_id);
+                        println!("Deserialized raw response object: {:?}",
+                                 raw_response_with_header);
+                        let deserialized_incoming_object = process_response(&raw_response_with_header);
+                        println!("Deserialized incoming object: {:?}",
+                                 deserialized_incoming_object);
+                        println!("Incoming buffer after (size: {}): {:#X} \n",
+                                 buf.len(),
+                                 buf.as_ref().as_hex());
+                        return Ok(Some((request_id,
+                                        AsyncResponse::Normal(deserialized_incoming_object))));
+                    }
+                }
             } else {
-                let length = read_length(&mut &buf.as_ref()[..5]);
-                println!("Length: {}, size: {}", length as usize, length as usize + 5);
-                if buf.len() >= length as usize + 5 {
-                    let incoming_object = buf.split_to(length as usize + 5);
-                    println!("incoming object (size: {}): {:#X}",
-                             incoming_object.len(),
-                             incoming_object.as_hex());
-                    let raw_response_with_header = get_response(&mut incoming_object.as_ref());
-                    let request_id = raw_response_with_header.header.sync;
-                    println!("NORMAL REQUEST ID: {}", request_id);
-                    println!("Deserialized raw response object: {:?}",
-                             raw_response_with_header);
-                    let deserialized_incoming_object = process_response(&raw_response_with_header);
-                    println!("Deserialized incoming object: {:?}",
-                             deserialized_incoming_object);
-                    println!("Incoming buffer after (size: {}): {:#X} \n",
-                             buf.len(),
-                             buf.as_ref().as_hex());
-                    return Ok(Some((request_id,
-                                    AsyncResponse::Normal(deserialized_incoming_object))));
+                println!("Tarantool auth message NOT recevied scope...");
+                if buf.len() <= 5 {
+                    return Ok(None);
+                } else {
+                    let length = read_length(&mut &buf.as_ref()[..5]);
+                    println!("Length: {}, size: {}", length as usize, length as usize + 5);
+                    if buf.len() >= length as usize + 5 {
+                        let incoming_object = buf.split_to(length as usize + 5);
+                        println!("incoming object (size: {}): {:#X}",
+                                 incoming_object.len(),
+                                 incoming_object.as_hex());
+                        let raw_response_with_header = get_response(&mut incoming_object.as_ref());
+                        let request_id = raw_response_with_header.header.sync;
+                        println!("NORMAL REQUEST ID: {}", request_id);
+                        println!("Deserialized raw response object: {:?}",
+                                 raw_response_with_header);
+                        let deserialized_incoming_object = process_response(&raw_response_with_header);
+                        println!("Deserialized incoming object: {:?}",
+                                 deserialized_incoming_object);
+                        println!("Incoming buffer after (size: {}): {:#X} \n",
+                                 buf.len(),
+                                 buf.as_ref().as_hex());
+                        match deserialized_incoming_object {
+                            Ok(_) => {
+                                self.tarantool_auth_message_received = true;
+                                return Ok(None)
+                            },
+                            Err(_) => {
+                                self.tarantool_auth_message_received = true;
+                                return Ok(None)
+                            }
+                         }
+                    }
                 }
             }
         } else {

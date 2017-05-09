@@ -26,7 +26,6 @@ fn main() {
 
     core.run(AsyncClient::auth("127.0.0.1:3301", "test", "test", &handle)
                  .and_then(|mut client| {
-                     join_all((0..10).into_iter().map(|index| {
                          client
                              .call(ActionType::Insert(Insert {
                                  space: 512,
@@ -36,7 +35,6 @@ fn main() {
                                  println!("Insert result: {:?}", result);
                                  Ok(())
                              })
-                     }).collect::<Vec<_>>())
                  })).unwrap();
 
 }
