@@ -18,13 +18,13 @@ impl Decoder for TarantoolCodec {
     type Error = io::Error;
 
     fn decode(&mut self, buf: &mut BytesMut) -> Result<Option<Self::Item>, Self::Error> {
-        println!("=== START DECODE ===");
+        println!("===DECODE======================================================================");
         println!("Incoming buffer before (size: {}): {:#X} \n",
                  buf.len(),
                  buf.as_ref().as_hex());
         if self.tarantool_handshake_received {
             println!("HANDSHAKE RECEIVED SCOPE");
-            if buf.len() < 5 {
+            if buf.len() <= 5 {
                 return Ok(None);
             } else {
                 let length = read_length(&mut &buf.as_ref()[..5]);
@@ -42,6 +42,9 @@ impl Decoder for TarantoolCodec {
                     let deserialized_incoming_object = process_response(&raw_response_with_header);
                     println!("Deserialized incoming object: {:?}",
                              deserialized_incoming_object);
+                    println!("Incoming buffer after (size: {}): {:#X} \n",
+                             buf.len(),
+                             buf.as_ref().as_hex());
                     return Ok(Some((request_id,
                                     AsyncResponse::Normal(deserialized_incoming_object))));
                 }
@@ -53,6 +56,9 @@ impl Decoder for TarantoolCodec {
                 let salt = raw_greeting[64..108].to_vec();
                 let scramble = scramble(String::from_utf8(salt).unwrap(), "test".to_string());
                 self.tarantool_handshake_received = true;
+                println!("Incoming buffer after (size: {}): {:#X} \n",
+                         buf.len(),
+                         buf.as_ref().as_hex());
                 return Ok(Some((0, AsyncResponse::Handshake(scramble))));
             }
         }
@@ -60,7 +66,6 @@ impl Decoder for TarantoolCodec {
         println!("Incoming buffer after (size: {}): {:#X} \n",
                  buf.len(),
                  buf.as_ref().as_hex());
-        println!("=== END DECODE ===");
         Ok(None)
     }
 }
@@ -70,19 +75,18 @@ impl Encoder for TarantoolCodec {
     type Error = io::Error;
 
     fn encode(&mut self, msg: (RequestId, ActionType), buf: &mut BytesMut) -> io::Result<()> {
-        println!("=== START ENCODE ===");
+        println!("===ENCODE======================================================================");
         println!("Incoming buffer before (size: {}): {:#X} \n",
                  buf.len(),
                  buf.as_ref().as_hex());
         let (mut request_id, msg) = msg;
-        request_id += 1;
+        request_id = request_id + 1;
         let request = build_request(msg, request_id);
         buf.reserve(request.len());
         buf.put_slice(&request);
         println!("Incoming buffer after (size: {}): {:#X} \n",
                  buf.len(),
                  buf.as_ref().as_hex());
-        println!("=== END ENCODE ===");
         Ok(())
     }
 }
