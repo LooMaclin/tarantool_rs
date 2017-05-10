@@ -25,37 +25,39 @@ impl<T> ClientProto<T> for TarantoolProto
     type BindTransport = Box<Future<Item = Self::Transport, Error = io::Error>>;
 
     fn bind_transport(&self, io: T) -> Self::BindTransport {
-        let transport = io.framed(TarantoolCodec { tarantool_handshake_received: false, tarantool_auth_message_received: false });
-        let handshake = transport
-            .into_future()
+        let transport = io.framed(TarantoolCodec {
+            tarantool_handshake_received: false,
+            tarantool_auth_message_received: false,
+        });
+        let handshake = transport.into_future()
             .map_err(|(e, _)| e)
             .and_then(|(line, transport)| match line {
-                          Some(ref msg) => {
-                println!("CLIENT: received server handshake");
-                let &(request_id, ref resp) = msg;
-                match resp {
-                    &AsyncResponse::Handshake(ref handshake_data) => {
-                        println!("Handshaked data: {:#X}", handshake_data.as_hex());
-                        Box::new(transport.send((request_id,
-                                                         ActionType::Auth(Auth {
-                                    username: String::from("test"),
-                                    scramble: handshake_data.clone(),
-                                })))) as Self::BindTransport
-                    }
-                    &AsyncResponse::Normal(_) => {
-                        println!("CLIENT: server handshake INVALID");
-                        let err = io::Error::new(io::ErrorKind::Other,
-                                                 "initial buffer is't [u8; 128]");
-                        Box::new(future::err(err)) as Self::BindTransport
+                Some(ref msg) => {
+                    println!("CLIENT: received server handshake");
+                    let &(request_id, ref resp) = msg;
+                    match resp {
+                        &AsyncResponse::Handshake(ref handshake_data) => {
+                            println!("Handshaked data: {:#X}", handshake_data.as_hex());
+                            Box::new(transport.send((request_id,
+                                                     ActionType::Auth(Auth {
+                                username: String::from("test"),
+                                scramble: handshake_data.clone(),
+                            })))) as Self::BindTransport
+                        }
+                        &AsyncResponse::Normal(_) => {
+                            println!("CLIENT: server handshake INVALID");
+                            let err = io::Error::new(io::ErrorKind::Other,
+                                                     "initial buffer is't [u8; 128]");
+                            Box::new(future::err(err)) as Self::BindTransport
+                        }
                     }
                 }
-            }
-                          _ => {
-                println!("CLIENT: server handshake INVALID");
-                let err = io::Error::new(io::ErrorKind::Other, "empty initial buffer");
-                Box::new(future::err(err)) as Self::BindTransport
-            }
-                      });
+                _ => {
+                    println!("CLIENT: server handshake INVALID");
+                    let err = io::Error::new(io::ErrorKind::Other, "empty initial buffer");
+                    Box::new(future::err(err)) as Self::BindTransport
+                }
+            });
         Box::new(handshake)
     }
 }

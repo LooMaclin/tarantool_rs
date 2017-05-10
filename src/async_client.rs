@@ -28,14 +28,14 @@ impl AsyncClient {
     {
         let addr = SocketAddr::from_str(address.into().as_ref()).unwrap();
         let ret = TcpClient::new(TarantoolProto {
-                                     user: user.into().into_owned(),
-                                     password: password.into().into_owned(),
-                                 })
-                .connect(&addr, handle)
-                .map(|client_service| {
-                         let validate = Validate { inner: client_service };
-                         AsyncClient { inner: validate }
-                     });
+                user: user.into().into_owned(),
+                password: password.into().into_owned(),
+            })
+            .connect(&addr, handle)
+            .map(|client_service| {
+                let validate = Validate { inner: client_service };
+                AsyncClient { inner: validate }
+            });
         Box::new(ret)
     }
 }

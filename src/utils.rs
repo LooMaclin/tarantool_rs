@@ -28,8 +28,8 @@ pub fn build_request(request_body: ActionType, request_id: u64) -> Vec<u8> {
             let mut encoded_request_length = [0x00, 0x00, 0x00, 0x00, 0x00];
             write_u32(&mut &mut encoded_request_length[..],
                       (header.len() + body.len()) as u32)
-                    .ok()
-                    .unwrap();
+                .ok()
+                .unwrap();
             let request = [&encoded_request_length[..], &header[..], &body[..]].concat();
             request
         }
@@ -41,8 +41,8 @@ pub fn build_request(request_body: ActionType, request_id: u64) -> Vec<u8> {
             let mut encoded_request_length = [0x00, 0x00, 0x00, 0x00, 0x00];
             write_u32(&mut &mut encoded_request_length[..],
                       (header.len() + body.len()) as u32)
-                    .ok()
-                    .unwrap();
+                .ok()
+                .unwrap();
             let request = [&encoded_request_length[..], &header[..], &body[..]].concat();
             request
         }
@@ -54,8 +54,8 @@ pub fn build_request(request_body: ActionType, request_id: u64) -> Vec<u8> {
             let mut encoded_request_length = [0x00, 0x00, 0x00, 0x00, 0x00];
             write_u32(&mut &mut encoded_request_length[..],
                       (header.len() + body.len()) as u32)
-                    .ok()
-                    .unwrap();
+                .ok()
+                .unwrap();
             let request = [&encoded_request_length[..], &header[..], &body[..]].concat();
             request
         }
@@ -72,8 +72,8 @@ pub fn build_request_sync<I>(request_body: &I, request_id: u64) -> Vec<u8>
     let mut encoded_request_length = [0x00, 0x00, 0x00, 0x00, 0x00];
     write_u32(&mut &mut encoded_request_length[..],
               (header.len() + body.len()) as u32)
-            .ok()
-            .unwrap();
+        .ok()
+        .unwrap();
     let request = [&encoded_request_length[..], &header[..], &body[..]].concat();
     request
 }

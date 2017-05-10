@@ -42,7 +42,8 @@ impl Decoder for TarantoolCodec {
                         println!("NORMAL REQUEST ID: {}", request_id);
                         println!("Deserialized raw response object: {:?}",
                                  raw_response_with_header);
-                        let deserialized_incoming_object = process_response(&raw_response_with_header);
+                        let deserialized_incoming_object =
+                            process_response(&raw_response_with_header);
                         println!("Deserialized incoming object: {:?}",
                                  deserialized_incoming_object);
                         println!("Incoming buffer after (size: {}): {:#X} \n",
@@ -69,7 +70,8 @@ impl Decoder for TarantoolCodec {
                         println!("NORMAL REQUEST ID: {}", request_id);
                         println!("Deserialized raw response object: {:?}",
                                  raw_response_with_header);
-                        let deserialized_incoming_object = process_response(&raw_response_with_header);
+                        let deserialized_incoming_object =
+                            process_response(&raw_response_with_header);
                         println!("Deserialized incoming object: {:?}",
                                  deserialized_incoming_object);
                         println!("Incoming buffer after (size: {}): {:#X} \n",
@@ -78,13 +80,13 @@ impl Decoder for TarantoolCodec {
                         match deserialized_incoming_object {
                             Ok(_) => {
                                 self.tarantool_auth_message_received = true;
-                                return Ok(None)
-                            },
+                                return Ok(None);
+                            }
                             Err(_) => {
                                 self.tarantool_auth_message_received = true;
-                                return Ok(None)
+                                return Ok(None);
                             }
-                         }
+                        }
                     }
                 }
             }

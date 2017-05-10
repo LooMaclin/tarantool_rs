@@ -1,6 +1,6 @@
 use std::io;
 use futures::Future;
-use tokio_service::{Service};
+use tokio_service::Service;
 use action_type::ActionType;
 use async_response::AsyncResponse;
 
