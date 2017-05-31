@@ -68,7 +68,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
 ```rust
 
     let space_id = tarantool_instance.fetch_space_id("tester");
-    println!("Tester space id: {}", space_id);
+    debug!("Tester space id: {}", space_id);
 
 ```
 
@@ -77,7 +77,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
 ```rust
 
     let index_id = tarantool_instance.fetch_index_id(space_id, "primary");
-    println!("Tester primary index id: {}", index_id);
+    debug!("Tester primary index id: {}", index_id);
 
 ```
 
@@ -96,10 +96,10 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
 
     let tuples = tarantool_instance.request(&select).unwrap_or_else(&error_handler);
 
-    println!("Select result: ");
+    debug!("Select result: ");
     for (index, tuple) in tuples.as_array().unwrap().iter().enumerate() {
         let tuple = tuple.as_array().unwrap();
-        println!("{}: {:?}", index, tuple);
+        debug!("{}: {:?}", index, tuple);
     }
     
 ```
@@ -113,7 +113,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
         keys: &vec![Value::from(9)]
     };
 
-    println!("Insert result: {:?}", tarantool_instance.request(&insert).unwrap_or_else(&error_handler));
+    debug!("Insert result: {:?}", tarantool_instance.request(&insert).unwrap_or_else(&error_handler));
 
 ```
 
@@ -126,7 +126,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
         keys: &vec![Value::from(1), Value::String(String::from("TEST REPLACE"))]
     };
 
-    println!("Replace result: {:?}", tarantool_instance.request(&replace).unwrap_or_else(&error_handler));
+    debug!("Replace result: {:?}", tarantool_instance.request(&replace).unwrap_or_else(&error_handler));
 
 ```
 
@@ -143,7 +143,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
         keys: &vec![Value::from(4)]
     };
 
-    println!("Integer-Update result: {:?}", tarantool_instance.request(&update_integer).unwrap_or_else(&error_handler));
+    debug!("Integer-Update result: {:?}", tarantool_instance.request(&update_integer).unwrap_or_else(&error_handler));
 
 ```
 
@@ -161,7 +161,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
         keys: &vec![Value::from(2)]
     };
 
-    println!("String-Update result: {:?}", tarantool_instance.request(&update_string).unwrap_or_else(&error_handler));
+    debug!("String-Update result: {:?}", tarantool_instance.request(&update_string).unwrap_or_else(&error_handler));
 
 ```
 
@@ -178,7 +178,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
         keys: &vec![Value::from(6)]
     };
 
-    println!("Common-Update result: {:?}", tarantool_instance.request(&update_common).unwrap_or_else(&error_handler));
+    debug!("Common-Update result: {:?}", tarantool_instance.request(&update_common).unwrap_or_else(&error_handler));
 
 ```
 
@@ -192,7 +192,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
         keys: &vec![Value::from(3)]
     };
 
-    println!("Delete result: {:?}", tarantool_instance.request(&delete).unwrap_or_else(&error_handler));
+    debug!("Delete result: {:?}", tarantool_instance.request(&delete).unwrap_or_else(&error_handler));
 
 ```
 
@@ -205,7 +205,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
         keys: &vec![]
     };
 
-    println!("Call result: {:?}", tarantool_instance.request(&call).unwrap_or_else(&error_handler));
+    debug!("Call result: {:?}", tarantool_instance.request(&call).unwrap_or_else(&error_handler));
 
 ```
 
@@ -218,7 +218,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
         keys: &vec![]
     };
 
-    println!("Eval result: {:?}", tarantool_instance.request(&eval).unwrap_or_else(&error_handler));
+    debug!("Eval result: {:?}", tarantool_instance.request(&eval).unwrap_or_else(&error_handler));
 
 ```
 
@@ -234,7 +234,7 @@ use tarantool::{Value, Tarantool, IteratorType, Select, Insert, Replace, Delete,
         argument: 2,
     };
 
-    println!("Upsert result: {:?}", tarantool_instance.request(&upsert).unwrap_or_else(&error_handler));
+    debug!("Upsert result: {:?}", tarantool_instance.request(&upsert).unwrap_or_else(&error_handler));
 
 ```
 

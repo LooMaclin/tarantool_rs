@@ -33,11 +33,11 @@ impl<T> ClientProto<T> for TarantoolProto
             .map_err(|(e, _)| e)
             .and_then(|(line, transport)| match line {
                 Some(ref msg) => {
-                    println!("CLIENT: received server handshake");
+                    debug!("CLIENT: received server handshake");
                     let &(request_id, ref resp) = msg;
                     match resp {
                         &AsyncResponse::Handshake(ref handshake_data) => {
-                            println!("Handshaked data: {:#X}", handshake_data.as_hex());
+                            debug!("Handshaked data: {:#X}", handshake_data.as_hex());
                             Box::new(transport.send((request_id,
                                                      ActionType::Auth(Auth {
                                 username: String::from("test"),
@@ -45,7 +45,7 @@ impl<T> ClientProto<T> for TarantoolProto
                             })))) as Self::BindTransport
                         }
                         &AsyncResponse::Normal(_) => {
-                            println!("CLIENT: server handshake INVALID");
+                            debug!("CLIENT: server handshake INVALID");
                             let err = io::Error::new(io::ErrorKind::Other,
                                                      "initial buffer is't [u8; 128]");
                             Box::new(future::err(err)) as Self::BindTransport
@@ -53,7 +53,7 @@ impl<T> ClientProto<T> for TarantoolProto
                     }
                 }
                 _ => {
-                    println!("CLIENT: server handshake INVALID");
+                    debug!("CLIENT: server handshake INVALID");
                     let err = io::Error::new(io::ErrorKind::Other, "empty initial buffer");
                     Box::new(future::err(err)) as Self::BindTransport
                 }

@@ -26,10 +26,10 @@ fn main() {
         .request(&select)
         .unwrap_or_else(&error_handler);
 
-    println!("Select result: ");
+    debug!("Select result: ");
     for (index, tuple) in tuples.as_array().unwrap().iter().enumerate() {
         let tuple = tuple.as_array().unwrap();
-        println!("{}: {:?}", index, tuple);
+        debug!("{}: {:?}", index, tuple);
     }
 
     let replace = Replace {
@@ -37,7 +37,7 @@ fn main() {
         keys: vec![Value::from(1), Value::from("TEST REPLACE")],
     };
 
-    println!("Replace result: {:?}",
+    debug!("Replace result: {:?}",
              tarantool_instance
                  .request(&replace)
                  .unwrap_or_else(&error_handler));
@@ -48,7 +48,7 @@ fn main() {
         keys: vec![Value::from(3)],
     };
 
-    println!("Delete result: {:?}",
+    debug!("Delete result: {:?}",
              tarantool_instance
                  .request(&delete)
                  .unwrap_or_else(&error_handler));
@@ -62,7 +62,7 @@ fn main() {
         keys: vec![Value::from(6)],
     };
 
-    println!("Common-Update result: {:?}",
+    debug!("Common-Update result: {:?}",
              tarantool_instance
                  .request(&update_common)
                  .unwrap_or_else(&error_handler));
@@ -72,7 +72,7 @@ fn main() {
         keys: vec![],
     };
 
-    println!("Call result: {:?}",
+    debug!("Call result: {:?}",
              tarantool_instance
                  .request(&call)
                  .unwrap_or_else(&error_handler));
@@ -82,7 +82,7 @@ fn main() {
         keys: vec![],
     };
 
-    println!("Eval result: {:?}",
+    debug!("Eval result: {:?}",
              tarantool_instance
                  .request(&eval)
                  .unwrap_or_else(&error_handler));
@@ -97,7 +97,7 @@ fn main() {
         keys: vec![Value::from(2)],
     };
 
-    println!("String-Update result: {:?}",
+    debug!("String-Update result: {:?}",
              tarantool_instance
                  .request(&update_string)
                  .unwrap_or_else(&error_handler));
@@ -111,7 +111,7 @@ fn main() {
         keys: vec![Value::from(4)],
     };
 
-    println!("Integer-Update result: {:?}",
+    debug!("Integer-Update result: {:?}",
              tarantool_instance
                  .request(&update_integer)
                  .unwrap_or_else(&error_handler));
@@ -124,7 +124,7 @@ fn main() {
         argument: 2,
     };
 
-    println!("Upsert result: {:?}",
+    debug!("Upsert result: {:?}",
              tarantool_instance
                  .request(&upsert)
                  .unwrap_or_else(&error_handler));
@@ -134,7 +134,7 @@ fn main() {
         keys: vec![Value::from(9)],
     };
 
-    println!("Insert result: {:?}",
+    debug!("Insert result: {:?}",
              tarantool_instance
                  .request(&insert)
                  .unwrap_or_else(&error_handler));

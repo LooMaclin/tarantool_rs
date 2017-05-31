@@ -26,15 +26,15 @@ fn main() {
 
     core.run(AsyncClient::auth("127.0.0.1:3301", "test", "test", &handle)
                  .and_then(|mut client| {
-                         client
+                     join_all((0..10).map(|_| { client
                              .call(ActionType::Insert(Insert {
                                  space: 512,
                                  keys: vec![Value::from(1)],
                              }))
                              .then(|result| {
-                                 println!("Insert result: {:?}", result);
+                                 debug!("Insert result: {:?}", result);
                                  Ok(())
-                             })
+                             })}).collect::<Vec<_>>())
                  })).unwrap();
 
 }

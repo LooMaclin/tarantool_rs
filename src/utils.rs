@@ -18,6 +18,7 @@ use base64::decode as decode_base64;
 use action::Action;
 use action_type::ActionType;
 
+#[inline(always)]
 pub fn build_request(request_body: ActionType, request_id: u64) -> Vec<u8> {
     match request_body {
         ActionType::Auth(auth) => {
@@ -62,6 +63,7 @@ pub fn build_request(request_body: ActionType, request_id: u64) -> Vec<u8> {
     }
 }
 
+#[inline(always)]
 pub fn build_request_sync<I>(request_body: &I, request_id: u64) -> Vec<u8>
     where I: Action
 {
@@ -78,6 +80,7 @@ pub fn build_request_sync<I>(request_body: &I, request_id: u64) -> Vec<u8>
     request
 }
 
+#[inline(always)]
 pub fn get_response<I>(mut descriptor: &mut I) -> Response
     where I: Read
 {
@@ -99,7 +102,7 @@ pub fn get_response<I>(mut descriptor: &mut I) -> Response
     }
 }
 
-
+#[inline(always)]
 pub fn process_response(response: &Response) -> Result<Value, Utf8String> {
     let data = response.body.as_ref().ok_or("Body is empty.")?;
     match read_value(&mut &data[..]).unwrap() {
@@ -122,6 +125,7 @@ pub fn process_response(response: &Response) -> Result<Value, Utf8String> {
     }
 }
 
+#[inline(always)]
 pub fn read_payload<I>(length: u32, descriptor: &mut I) -> Vec<u8>
     where I: Read
 {
@@ -133,13 +137,14 @@ pub fn read_payload<I>(length: u32, descriptor: &mut I) -> Vec<u8>
     payload
 }
 
+#[inline(always)]
 pub fn header(command: RequestTypeKey, request_id: u64) -> Vec<u8> {
     serialize(Value::Map(vec![(Value::from(Code::RequestType as u8), Value::from(command as u8)),
                               (Value::from(Code::Sync as u8), Value::from(request_id))]))
 }
 
 
-
+#[inline(always)]
 pub fn serialize<I>(keys: I) -> Vec<u8>
     where I: Serialize
 {
@@ -149,6 +154,7 @@ pub fn serialize<I>(keys: I) -> Vec<u8>
     keys_buffer
 }
 
+#[inline(always)]
 pub fn read_length<I>(stream: &mut I) -> u32
     where I: Read
 {
@@ -158,6 +164,7 @@ pub fn read_length<I>(stream: &mut I) -> u32
     Decodable::decode(&mut decoder).unwrap()
 }
 
+#[inline(always)]
 pub fn scramble(salt: String, password: String) -> Vec<u8> {
     let decoded_salt = &decode_base64(&salt).unwrap()[..];
     let mut step_1 = Sha1::new();

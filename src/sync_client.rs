@@ -58,7 +58,7 @@ impl<'a> SyncClient<'a> {
     }
 
 
-
+    #[inline(always)]
     pub fn request<I>(&mut self, request_body: &I) -> Result<Value, Utf8String>
         where I: Action
     {

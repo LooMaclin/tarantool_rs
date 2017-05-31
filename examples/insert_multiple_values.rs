@@ -18,7 +18,7 @@ fn main() {
                    Value::Array(vec![Value::from(10)])],
     };
 
-    println!("Insert result: {:?}",
+    debug!("Insert result: {:?}",
              tarantool_instance
                  .request(&insert)
                  .unwrap_or_else(&error_handler));

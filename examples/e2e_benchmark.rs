@@ -7,14 +7,10 @@ use tarantool::{Value, SyncClient, IteratorType, Select, Insert, Replace, Delete
 fn main() {
     let mut tarantool_instance = SyncClient::auth("127.0.0.1:3301", "test", "test")
         .unwrap_or_else(|err| {
-                            panic!("err: {}", err);
-                        });
+            panic!("err: {}", err);
+        });
 
-    let space_id = tarantool_instance.fetch_space_id("Tester").unwrap();
-    debug!("Tester space id: {:?}", space_id);
+    let error_handler = |err| panic!("Tarantool error: {}", err);
 
-    let index_id = tarantool_instance
-        .fetch_index_id(space_id, "primary")
-        .unwrap();
-    debug!("Tester primary index id: {:?}", index_id);
+
 }

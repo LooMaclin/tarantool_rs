@@ -49,7 +49,7 @@ fn main() {
                        Value::from(user.likes),
                        Value::from(user.posts)],
         };
-        println!("Insert result: {:?}",
+        debug!("Insert result: {:?}",
                  tarantool_instance
                      .request(&insert)
                      .unwrap_or_else(&error_handler));
@@ -68,11 +68,11 @@ fn main() {
         .request(&select)
         .unwrap_or_else(&error_handler);
 
-    println!("Select result: ");
+    debug!("Select result: ");
     for (index, tuple) in tuples.as_array().unwrap().iter().enumerate() {
         let tuple = tuple.as_array().unwrap();
-        println!("{}: {:?}", index, tuple);
-        println!("{}: {:?}",
+        debug!("{}: {:?}", index, tuple);
+        debug!("{}: {:?}",
                  index,
                  User {
                      login: tuple[1].as_str().unwrap().into(),
@@ -87,7 +87,7 @@ fn main() {
             keys: vec![tuple[0].clone()],
         };
 
-        println!("Delete result: {:?}",
+        debug!("Delete result: {:?}",
                  tarantool_instance
                      .request(&delete)
                      .unwrap_or_else(&error_handler));
