@@ -27,3 +27,4 @@ bytes = "0.4.3"
 [dev-dependencies]
 env_logger = "0.3"
 service-fn = { git = "https://github.com/tokio-rs/service-fn" }
+log = "0.3.6"

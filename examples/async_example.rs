@@ -1,9 +1,12 @@
+#[macro_use]
 extern crate tarantool;
 extern crate futures;
 extern crate tokio_core;
 extern crate tokio_service;
 extern crate service_fn;
 
+#[macro_use]
+extern crate log;
 use tarantool::{Value, SyncClient, IteratorType, Select, Insert, Replace, Delete, UpdateCommon,
                 CommonOperation, Call, Eval, UpdateString, UpdateInteger, IntegerOperation,
                 Upsert, UpsertOperation};

@@ -1,3 +1,5 @@
+#[macro_use]
+extern crate log;
 extern crate tarantool;
 
 use tarantool::{Value, SyncClient, IteratorType, Select, Insert, Replace, Delete, UpdateCommon,
@@ -9,8 +11,4 @@ fn main() {
         .unwrap_or_else(|err| {
             panic!("err: {}", err);
         });
-
-    let error_handler = |err| panic!("Tarantool error: {}", err);
-
-
 }

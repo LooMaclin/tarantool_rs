@@ -1,3 +1,5 @@
+#[macro_use]
+extern crate log;
 extern crate tarantool;
 use tarantool::utils::read_length;
 
