@@ -4,10 +4,10 @@ version = "0.1.0"
 authors = ["Galimov Arsen Gareginovich <loomaclin@yandex.ru>"]
 
 [dependencies]
-serde = "0.9.9"
-rmp = "0.8.2"
-rmp-serde = "0.12.2"
-rmpv = { version = "0.3.0", features = ["with-serde"] }
+serde = "1.0.15"
+rmp = "0.8.7"
+rmp-serde = "0.13.7"
+rmpv = { version = "0.4.0", features = ["with-serde"] }
 
 base64 = "0.2.1"
 sha1 = "0.2.0"
